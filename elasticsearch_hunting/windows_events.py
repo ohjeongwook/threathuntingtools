@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
+# pylint: disable=unused-wildcard-import
 
 import sys
 import pprint
@@ -81,7 +82,7 @@ class Provider:
             s = s[0:size]
             return s.execute().hits
 
-        return hits
+        return None
         
     def get_count(self, query):
         return self.search(query, get_count = True)
@@ -94,7 +95,7 @@ class Provider:
 
         return self.get_count(Q({'bool': {'must': elastic_bool}}))
     
-    def get_grouped_event_counts(self):
+    def get_grouped_event_counts(self, event_id = None):
         elastic_bool = self.get_default_query()
            
         if event_id != None:
@@ -210,16 +211,16 @@ class Provider:
         response = s.execute()
 
         if self.Scan:
-            hits = s.scan()
+            s.scan()
         else:
             response = s.execute()
-            hits = response.hits        
         
         return response.aggregations[event_data_name]
     
     def dump_by_event_data(self, event_id = None, event_data_name = "Image", sub_event_data_name = None, bucket_size = 1000, sub_bucket_size = 100, threshold = 100):
         print("{0:80} {1}".format(event_data_name, "Count"))
-        for e in provider.aggregate_by_event_data(event_id = event_id, event_data_name = event_data_name, sub_event_data_name = sub_event_data_name, bucket_size = bucket_size, sub_bucket_size = sub_bucket_size, threshold = threshold):
+
+        for e in self.aggregate_by_event_data(event_id = event_id, event_data_name = event_data_name, sub_event_data_name = sub_event_data_name, bucket_size = bucket_size, sub_bucket_size = sub_bucket_size, threshold = threshold):
             print("{0:80} {1}".format(e.key, e.doc_count))
             
             if sub_event_data_name and sub_event_data_name in e:
