@@ -16,12 +16,12 @@ class Events:
         self.Client = Elasticsearch()    
 
     def dump_event_counts(self):
-        s = Search(using=self.Client, index=WINLOGBEAT_INDEX)
-        s.source(includes=['winlog.provider_name', 'winlog.event_id'])
-        s.aggs.bucket('distinct_provider_names', 'terms', field='winlog.provider_name', size=100000)
+        s = Search(using = self.Client, index = WINLOGBEAT_INDEX)
+        s.source(includes = ['winlog.provider_name', 'winlog.event_id'])
+        s.aggs.bucket('distinct_provider_names', 'terms', field = 'winlog.provider_name', size = 100000)
         response = s.execute()
 
-        sorted_distinct_provider_names=sorted(response.aggregations.distinct_provider_names, key = lambda kv:(kv.doc_count, kv.key), reverse = True)
+        sorted_distinct_provider_names = sorted(response.aggregations.distinct_provider_names, key = lambda kv:(kv.doc_count, kv.key), reverse = True)
 
         max_provider_name_len = 0
         for e in sorted_distinct_provider_names:
@@ -29,24 +29,24 @@ class Events:
             if max_provider_name_len < str_len:
                 max_provider_name_len = str_len
 
-        fmt_str="{0:%d} {1}" % max_provider_name_len
+        fmt_str = "{0:%d} {1}" % max_provider_name_len
         for e in sorted_distinct_provider_names:
             print(fmt_str.format(e.key, e.doc_count))        
 
 class Provider:    
-    def __init__(self, provider_name='', hostname='', start_datetime = None, end_datetime = None, scan = False, debug_query = False):
+    def __init__(self, provider_name = '', hostname = '', start_datetime = None, end_datetime = None, scan = False, debug_query = False):
         self.DebugQuery = debug_query
         self.Scan = scan
         self.Client = Elasticsearch()
-        self.Hostname=hostname
+        self.Hostname = hostname
         self.ProviderName = provider_name
         
         timestamp = {}
         
-        if start_datetime!=None:
+        if start_datetime != None:
             timestamp['gte'] = start_datetime
 
-        if end_datetime!=None:
+        if end_datetime != None:
             timestamp['lt'] = end_datetime
 
         if len(timestamp)>0:
@@ -62,15 +62,15 @@ class Provider:
         
         return elastic_bool
         
-    def search(self, query, get_count=False, includes=None, size=1000):
-        s = Search(using=self.Client, index=WINLOGBEAT_INDEX).query(query)
-        if self.DTRange!=None:
+    def search(self, query, get_count = False, includes = None, size = 1000):
+        s = Search(using = self.Client, index = WINLOGBEAT_INDEX).query(query)
+        if self.DTRange != None:
             s = s.filter('range', **self.DTRange)
 
-        if includes==None:
-            includes=['winlog.provider_name', 'winlog.event_id']
+        if includes == None:
+            includes = ['winlog.provider_name', 'winlog.event_id']
 
-        s.source(includes=includes)
+        s.source(includes = includes)
 
         if get_count:
             return s.count()
@@ -84,12 +84,12 @@ class Provider:
         return hits
         
     def get_count(self, query):
-        return self.search(query, get_count=True)
+        return self.search(query, get_count = True)
 
     def get_event_counts(self, event_id = None):
         elastic_bool = self.get_default_query()
            
-        if event_id!=None:
+        if event_id != None:
             elastic_bool.append({'match': {'winlog.event_id': event_id}})
 
         return self.get_count(Q({'bool': {'must': elastic_bool}}))
@@ -97,7 +97,7 @@ class Provider:
     def get_grouped_event_counts(self):
         elastic_bool = self.get_default_query()
            
-        if event_id!=None:
+        if event_id != None:
             elastic_bool.append({'match': {'winlog.event_id': event_id}})
 
         return self.get_count(Q({'bool': {'must': elastic_bool}}))
@@ -106,11 +106,11 @@ class Provider:
         elastic_bool = self.get_default_query()
 
         query = Q({'bool': {'must': elastic_bool}})
-        s = Search(using=self.Client, index=WINLOGBEAT_INDEX).query(query)
-        if self.DTRange!=None:
+        s = Search(using = self.Client, index = WINLOGBEAT_INDEX).query(query)
+        if self.DTRange != None:
             s = s.filter('range', **self.DTRange)
-        s.source(includes=['winlog.event_id', 'winlog.event_data.LogString'])
-        s.aggs.bucket('distinct_event_ids', 'terms', field='winlog.event_id', size=1000)
+        s.source(includes = ['winlog.event_id', 'winlog.event_data.LogString'])
+        s.aggs.bucket('distinct_event_ids', 'terms', field = 'winlog.event_id', size = 1000)
         response = s.execute()
 
         return sorted(response.aggregations.distinct_event_ids, key = lambda kv:(kv.doc_count, kv.key), reverse = True)
@@ -133,20 +133,20 @@ class Provider:
             field_name = 'winlog.event_data.' + event_data_name
             elastic_bool.append({'match': {field_name: event_data_value}})
             
-        if process_id!=None:
+        if process_id != None:
             # winlog.process.pid/winlog.event_data.ProcessId
-            pid_match_query={
+            pid_match_query = {
                 "multi_match" : {
-                    "query":      str(process_id),
-                    "type":       "best_fields",
-                    "fields":     [ "winlog.process.pid", "winlog.event_data.ProcessId", "winlog.user_data.ProcessId" ],
+                    "query":      str(process_id), 
+                    "type":       "best_fields", 
+                    "fields":     [ "winlog.process.pid", "winlog.event_data.ProcessId", "winlog.user_data.ProcessId" ], 
                     "operator":   "and" 
                 }
             }
             
             elastic_bool.append(pid_match_query)
 
-        if process_guid!=None:
+        if process_guid != None:
             elastic_bool.append({'match': {'winlog.event_data.ProcessGuid': event_data_value}})
 
         return self.search(Q({'bool': {'must': elastic_bool}}))
@@ -182,27 +182,27 @@ class Provider:
 
         query = Q({'bool': {'must': elastic_bool}})
 
-        s = Search(using=self.Client, index="winlogbeat-*").query(query)        
-        if self.DTRange!=None:
+        s = Search(using = self.Client, index = "winlogbeat-*").query(query)        
+        if self.DTRange != None:
             s = s.filter('range', **self.DTRange)
 
-        s.source(includes=['winlog.*'])
+        s.source(includes = ['winlog.*'])
         
         if aggregate_by_hostname:
-            b = s.aggs.bucket(event_data_name, 'terms', field='agent.hostname', size=bucket_size)
+            b = s.aggs.bucket(event_data_name, 'terms', field = 'agent.hostname', size = bucket_size)
         else:
             b = s.aggs
 
-        b = b.bucket(event_data_name, 'terms', field='winlog.event_data.' + event_data_name, size=bucket_size)
+        b = b.bucket(event_data_name, 'terms', field = 'winlog.event_data.' + event_data_name, size = bucket_size)
         if threshold:
             # https://github.com/ongr-io/ElasticsearchDSL/blob/master/docs/Aggregation/Pipeline/BucketSelector.md
             # https://elasticsearch-dsl.readthedocs.io/en/latest/search_dsl.html
             threshold_bucket_name = event_data_name+"_counts"
-            b.bucket(threshold_bucket_name, 'cardinality', field='@timestamp')
-            b.pipeline('threshold_bucket_selector', 'bucket_selector', buckets_path={ "counts": threshold_bucket_name}, script='params.counts > %d' % threshold)
+            b.bucket(threshold_bucket_name, 'cardinality', field = '@timestamp')
+            b.pipeline('threshold_bucket_selector', 'bucket_selector', buckets_path = { "counts": threshold_bucket_name}, script = 'params.counts > %d' % threshold)
 
         if sub_event_data_name:
-            b.bucket(sub_event_data_name, 'terms', field='winlog.event_data.' + sub_event_data_name, size=sub_bucket_size)
+            b.bucket(sub_event_data_name, 'terms', field = 'winlog.event_data.' + sub_event_data_name, size = sub_bucket_size)
 
         if self.DebugQuery:
             pprint.pprint(s.to_dict())
@@ -236,7 +236,7 @@ class Provider:
     def dump_event_summary(self):
         elastic_bool = self.get_default_query()
 
-        code2action={}
+        code2action = {}
         for hit in self.search(Q({'bool': {'must': elastic_bool}})):
             try:
                 code2action[hit.event.code] = hit.event.action
@@ -253,22 +253,22 @@ class File:
         self.Provider = Provider(SYSMON_PROVIDER_NAME, start_datetime = start_datetime, end_datetime = end_datetime, scan = scan)
         
     def aggregate_by_image_target_filename(self):
-        results=self.Provider.aggregate_by_event_data(event_id = 11, event_data_name = "Image", sub_event_data_name = "TargetFilename", bucket_size = 1000, sub_bucket_size = 100, threshold = 100)
+        results = self.Provider.aggregate_by_event_data(event_id = 11, event_data_name = "Image", sub_event_data_name = "TargetFilename", bucket_size = 1000, sub_bucket_size = 100, threshold = 100)
 
         for target_filename in results[0]['TargetFilename']:
             print(target_filename.key, target_filename.doc_count)
 
         
     def aggregate_by_image(self):
-        results=self.Provider.aggregate_by_event_data(event_id = 11, event_data_name = "Image", bucket_size = 1000)
+        results = self.Provider.aggregate_by_event_data(event_id = 11, event_data_name = "Image", bucket_size = 1000)
 
         for image in results:
             print('%s: %d' % (image.key, image.doc_count))
 
     def aggregate_by_target_filename(self, image, size = 1000):
         # [Allow for `scan` with aggregations #580](https://github.com/elastic/elasticsearch-dsl-py/issues/580)
-        filenames=[]
-        for hit in self.Provider.query_events(event_id = 11, event_data_name = 'Image',event_data_value = image, size = size):
+        filenames = []
+        for hit in self.Provider.query_events(event_id = 11, event_data_name = 'Image', event_data_value = image, size = size):
             filenames.append(hit.winlog.event_data.TargetFilename)
         return filenames
 

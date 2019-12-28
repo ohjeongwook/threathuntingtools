@@ -11,18 +11,18 @@ from collections import OrderedDict
 
 class CommandLineData:
     def __init__(self):
-        self.Entries=[]
-        self.Data=[]
-        self.Targets=[]
+        self.Entries = []
+        self.Data = []
+        self.Targets = []
         
     def load(self, filename):
-        with open(filename, 'r', encoding='utf8') as fd:
+        with open(filename, 'r', encoding = 'utf8') as fd:
             try:
-                self.Entries=yaml.safe_load(fd)
+                self.Entries = yaml.safe_load(fd)
                 for detection in self.Entries:
                     
                     self.Data.append(detection['Command'])
-                    if detection['Detection']=='Malicious':
+                    if detection['Detection'] == 'Malicious':
                         self.Targets.append(1)
                     else:
                         self.Targets.append(0)
@@ -33,31 +33,31 @@ class CommandLineData:
         return string.count(pattern)
 
     def extract_powershell_features(self):
-        features=[]
+        features = []
         for entry in self.Entries:
-            if entry['Detection']=='Malicious':
-                detection=1
+            if entry['Detection'] == 'Malicious':
+                detection = 1
             else:
-                detection=0
+                detection = 0
 
-            feature={}
-            command=entry['Command']
-            feature['Exe Count']=self.count_pattern(command,'.exe')-self.count_pattern(command,'powershell.exe')
-            feature['Single Quote Count']=self.count_pattern(command,'\'')
-            feature['Pipe Count']=self.count_pattern(command,'|')
-            feature['Plus Count']=self.count_pattern(command,'+')
-            feature['Carret Count']=self.count_pattern(command,'^')
-            feature['Reference Count']=len(re.findall('{[0-9]+}', command))
-            feature['Block Count']=len(re.findall('\[[^\[\]]+\]', command))
-            feature['Entropy']=Util.entry(command)
-            feature['Weight']=entry['Weight']
-            feature['Detection']=detection
+            feature = {}
+            command = entry['Command']
+            feature['Exe Count'] = self.count_pattern(command, '.exe')-self.count_pattern(command, 'powershell.exe')
+            feature['Single Quote Count'] = self.count_pattern(command, '\'')
+            feature['Pipe Count'] = self.count_pattern(command, '|')
+            feature['Plus Count'] = self.count_pattern(command, '+')
+            feature['Carret Count'] = self.count_pattern(command, '^')
+            feature['Reference Count'] = len(re.findall('{[0-9]+}', command))
+            feature['Block Count'] = len(re.findall('\[[^\[\]]+\]', command))
+            feature['Entropy'] = Util.entry(command)
+            feature['Weight'] = entry['Weight']
+            feature['Detection'] = detection
 
-            m=re.search(r'([a-zA-Z%][^\\\\//\';]*)\.(exe|ps1|bat|cmd)', command, re.I)
+            m = re.search(r'([a-zA-Z%][^\\\\//\';]*)\.(exe|ps1|bat|cmd)', command, re.I)
             if m:
-                feature['Command Entropy']=Util.entry(m.group(1))
+                feature['Command Entropy'] = Util.entry(m.group(1))
             else:
-                feature['Command Entropy']=0
+                feature['Command Entropy'] = 0
 
             features.append(feature)
 

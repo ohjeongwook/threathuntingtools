@@ -16,14 +16,14 @@ class ProcessTree:
         self.ProcessMap = {}
         self.ParentMap = {}
         self.RootProcessIdList = []
-        self.ProcessInfoMap={}
+        self.ProcessInfoMap = {}
 
     def add_process_map(self, parent_guid, child_guid):
         if not parent_guid in self.ProcessMap:
             self.ProcessMap[parent_guid] = []
 
         self.ProcessMap[parent_guid].append(child_guid)
-        self.ParentMap[child_guid]=parent_guid
+        self.ParentMap[child_guid] = parent_guid
 
     def add_root_process_id(self, process_id):
         self.RootProcessIdList.append(process_id)
@@ -36,18 +36,18 @@ class ProcessTree:
     def add_process_info(self, event_data):
         if not event_data.ParentProcessGuid in self.ProcessInfoMap:
             self.ProcessInfoMap[event_data.ParentProcessGuid] = {
-                'Image': event_data.ParentImage,
-                'CommandLine': event_data.ParentCommandLine,
+                'Image': event_data.ParentImage, 
+                'CommandLine': event_data.ParentCommandLine, 
                 'ProcessId': event_data.ParentProcessId
             }
 
         self.ProcessInfoMap[event_data.ProcessGuid] = event_data.to_dict()
 
     def find(self, process_name = None, process_id = None):
-        traced_process_tree_list=[]
+        traced_process_tree_list = []
         for (process_guid, process_info) in self.ProcessInfoMap.items():
             found = False
-            if process_name != None and process_info['Image'].lower().find(process_name.lower())>=0:
+            if process_name != None and process_info['Image'].lower().find(process_name.lower()) >= 0:
                 found = True
             elif process_id != None and process_info['ProcessId'] == str(process_id):
                 found = True
@@ -97,10 +97,10 @@ class Process:
         
         timestamp = {}
         
-        if start_datetime!=None:
+        if start_datetime != None:
             timestamp['gte'] = start_datetime
 
-        if end_datetime!=None:
+        if end_datetime != None:
             timestamp['lt'] = end_datetime
 
         if len(timestamp)>0:
@@ -110,7 +110,7 @@ class Process:
 
         self.Client = Elasticsearch()
     
-    def get_default_elastic_bool_expression(self, process_id=None, process_name=None):
+    def get_default_elastic_bool_expression(self, process_id = None, process_name = None):
         elastic_bool = []
         elastic_bool.append({'match': {'winlog.provider_name': SYSMON_PROVIDER_NAME}})
         elastic_bool.append({'match': {'winlog.event_id': 1}})
@@ -127,12 +127,12 @@ class Process:
         return elastic_bool
         
     def _search(self, query):
-        s = Search(using=self.Client, index="winlogbeat-*").query(query)
+        s = Search(using = self.Client, index = "winlogbeat-*").query(query)
 
-        if self.DTRange!=None:
+        if self.DTRange != None:
             s = s.filter('range', **self.DTRange)
 
-        s.source(includes=['winlog.*'])
+        s.source(includes = ['winlog.*'])
         s.sort('-winlog.event_data.UtcTime')
 
         if self.Scan:
@@ -141,7 +141,7 @@ class Process:
             return s.execute().hits
         
     def find_process_by_guid(self, process_guid, find_parent = True):
-        elastic_bool=self.get_default_elastic_bool_expression()
+        elastic_bool = self.get_default_elastic_bool_expression()
 
         if find_parent:
             elastic_bool.append({'match': {'winlog.event_data.ProcessGuid': process_guid}})
@@ -155,12 +155,12 @@ class Process:
         
         return None
 
-    def search(self, process_id = None, process_name = None, create_time = None, callback=None, options=None):
-        elastic_bool=self.get_default_elastic_bool_expression(process_id=process_id, process_name=process_name)
+    def search(self, process_id = None, process_name = None, create_time = None, callback = None, options = None):
+        elastic_bool = self.get_default_elastic_bool_expression(process_id = process_id, process_name = process_name)
         query = Q({'bool': {'must': elastic_bool}})
         query = Q({'bool': {'must': elastic_bool}})
 
-        process_list=[]
+        process_list = []
         for hit in self._search(query):
             if callback is not None:
                 callback(hit.winlog, options)
@@ -170,10 +170,10 @@ class Process:
         return process_list
 
     def find_process_trees(self, process_id = None, process_name = None, create_time = None):
-        elastic_bool=self.get_default_elastic_bool_expression(process_id=process_id, process_name=process_name)        
+        elastic_bool = self.get_default_elastic_bool_expression(process_id = process_id, process_name = process_name)        
         query = Q({'bool': {'must': elastic_bool}})
 
-        process_tree_list=[]
+        process_tree_list = []
         for hit in self._search(query):
             process_tree_list.append(self.get_process_tree(hit.winlog.event_data.ProcessGuid))
         return process_tree_list
@@ -197,13 +197,13 @@ class Process:
     def _find_process_chain(self, process_tree, process_guid, find_parent = True):
         current_process_guid = process_guid
         
-        checked_process_guids={}
+        checked_process_guids = {}
         while current_process_guid != None:
             if current_process_guid in checked_process_guids:
                 print("_FindProcessChain - process chain loop found")
                 break
 
-            checked_process_guids[current_process_guid]=1
+            checked_process_guids[current_process_guid] = 1
             hit = self.find_process_by_guid(current_process_guid, find_parent)
 
             if hit == None:
@@ -228,7 +228,7 @@ class Process:
         return process_tree
 
     def build_tree(self):
-        elastic_bool=self.get_default_elastic_bool_expression()
+        elastic_bool = self.get_default_elastic_bool_expression()
         query = Q({'bool': {'must': elastic_bool}})
         
         process_tree = ProcessTree()
@@ -241,12 +241,12 @@ class Process:
         return process_tree
 
 
-if __name__=='__main__':
-    process=Process()
+if __name__ == '__main__':
+    process = Process()
 
     start_datetime = datetime.datetime.strptime('2019-05-20 19:40:00.0', '%Y-%m-%d %H:%M:%S.%f')
     end_datetime = datetime.datetime.strptime('2019-05-20 19:50:00.0', '%Y-%m-%d %H:%M:%S.%f')
     
-    process = Process(hostname="NEWSTARTBASE", start_datetime=start_datetime, end_datetime=end_datetime, scan = True)
+    process = Process(hostname = "NEWSTARTBASE", start_datetime = start_datetime, end_datetime = end_datetime, scan = True)
     process_tree_list = process.build_tree()
     process_tree_list.print()
