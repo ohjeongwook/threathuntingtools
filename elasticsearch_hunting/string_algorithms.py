@@ -75,9 +75,9 @@ class StringMatcher:
         elif self.DataType == 'FilePath':
             return re.split(r'[\\/]+', string)
         elif self.DataType == 'CommandLine':
-            replaced_string = re.sub("[0-9]{1, 3}\.[0-9]{1, 3}\.[0-9]{1, 3}\.[0-9]{1, 3}", "<normalized_ip>", string)
-            replaced_string = re.sub("[\w\-. ]+\.tmp", "<normalized_filename>", replaced_string)
-            replaced_string = re.sub("test_user_[a-fA-F0-9]+", "<normalized_path>", replaced_string)
+            replaced_string = re.sub(r"[0-9]{1, 3}\.[0-9]{1, 3}\.[0-9]{1, 3}\.[0-9]{1, 3}", "<normalized_ip>", string)
+            replaced_string = re.sub(r"[\w\-. ]+\.tmp", "<normalized_filename>", replaced_string)
+            replaced_string = re.sub(r"test_user_[a-fA-F0-9]+", "<normalized_path>", replaced_string)
             return re.sub(r"[A-Za-z]:\\[a-zA-Z0-9_+\\~\.]+", "<normalized_path>", replaced_string)
 
     def get_tfidf_matrix(self):

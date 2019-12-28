@@ -114,7 +114,7 @@ class TelemetryStats:
         return df
     
     def plot_event_counts(self, event_id = None, y = 'Count'):
-        df = telemetry_stats.get_event_counts(event_id)
+        df = self.get_event_counts(event_id)
         
         if self.UsePlotLy:
             data = [go.Bar(x = df.StartDate, 

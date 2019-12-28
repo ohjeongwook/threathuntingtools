@@ -49,7 +49,7 @@ class CommandLineData:
             feature['Plus Count'] = self.count_pattern(command, '+')
             feature['Carret Count'] = self.count_pattern(command, '^')
             feature['Reference Count'] = len(re.findall('{[0-9]+}', command))
-            feature['Block Count'] = len(re.findall('\[[^\[\]]+\]', command))
+            feature['Block Count'] = len(re.findall(r'\[[^\[\]]+\]', command))
             feature['Entropy'] = Util.entry(command)
             feature['Weight'] = entry['Weight']
             feature['Detection'] = detection

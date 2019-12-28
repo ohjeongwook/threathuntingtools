@@ -55,10 +55,6 @@ class Util:
         with open(filename, 'w') as fd:
             yaml.dump(parsed_results, fd)        
 
-
-# In[8]:
-
-
 # http://www.windowsinspired.com/understanding-the-command-line-string-and-arguments-received-by-a-windows-program/
 # http://www.windowsinspired.com/how-a-windows-programs-splits-its-command-line-into-individual-arguments/
 from lark import Lark, tree, lexer, Transformer
@@ -112,7 +108,7 @@ class CommandLineItertor:
                             self.QuoteStart = True
                         else:
                             argument += ch 
-                    elif self.QuoteStart == False and (ch in self.DelimiterCharacters or (self.QuotesCount>0 and self.QuotesCount% 2= =0)):
+                    elif self.QuoteStart == False and (ch in self.DelimiterCharacters or (self.QuotesCount>0 and self.QuotesCount% 2 == 0)):
                         self.InputStringIndex += 1
                         break
                     elif ch in ('(', '/') or ch in self.CommandSeparator:
@@ -127,7 +123,7 @@ class CommandLineItertor:
                     if argument == '':
                         quoted = True
 
-                    if self.InterpretState == self.InterpretState.InterpretSpecialChars:
+                    if self.InterpretState == State.InterpretSpecialChars:
                         self.InterpretState = State.IgnoreSpecialChars
                     elif self.InterpretState == State.IgnoreSpecialChars:
                         if self.InputStringIndex<len(self.InputString)-1 and self.InputString[self.InputStringIndex+1] == '"':

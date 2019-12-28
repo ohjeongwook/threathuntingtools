@@ -29,7 +29,7 @@ class ProcessQuery:
     def open_sqlite_database(self, filename):
         try:
             self.SqliteConn = sqlite3.connect(filename)
-        except Error as e:
+        except sqlite3.Error as e:
             print(e)
         
     def create_table(self, field_names):

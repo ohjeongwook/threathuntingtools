@@ -181,7 +181,7 @@ class Detector:
         {
             'Name': 'Download-DecoyDocx', 
             'Patterns': 
-                ['DownloadFile.*\(.*.docx\)'], 
+                [r'DownloadFile.*\(.*.docx\)'], 
             'Debug': True
         }, 
         {
@@ -231,7 +231,7 @@ class Detector:
         {
             'Name': 'DownloadFile', 
             'Patterns': 
-                [r'Downloadfile', r'DownloadString', 'Invoke-WebRequest', 'http:', 'Net.WebClient', 'System.IO.Compression.GzipStream.*-Outfile.*\.exe', 'NetInvoke-WebRequest']
+                [r'Downloadfile', r'DownloadString', 'Invoke-WebRequest', 'http:', 'Net.WebClient', r'System.IO.Compression.GzipStream.*-Outfile.*\.exe', 'NetInvoke-WebRequest']
             , 
             'Weight': 0, 
             'Debug': False
@@ -346,7 +346,6 @@ class Detector:
     
     def scan(self, powershell_command):
         debug = 0
-        detections = []
         matched_rule_infos = {}
         for heuristic_rule in self.HeuristicRules:
             for pattern in heuristic_rule['Patterns']:
@@ -364,7 +363,7 @@ class Detector:
                         if debug>0:
                             print('>> Current rule %s and dependency %s is missing' % (name, dependency))
                             print('\t'+powershell_command)
-                            print(matched_rules)
+                            print(matched_rule_infos)
 
                         dependencies_fulfilled = False
                         break
