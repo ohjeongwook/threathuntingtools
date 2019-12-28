@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# pylint: disable=unused-wildcard-import
+# pylint: disable=unused-wildcard-import, import-error
 
 import sys
 sys.path.append(r'..\elasticsearch_hunting')
