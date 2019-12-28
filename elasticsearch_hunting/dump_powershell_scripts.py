@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+# coding: utf-8
+# pylint: disable=unused-wildcard-import
+
 import datetime
 
 import powershell

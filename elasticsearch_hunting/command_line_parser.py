@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-
-# In[4]:
-
+# pylint: disable=unused-wildcard-import
 
 import traceback
 
@@ -244,10 +242,6 @@ class CommandLineItertor:
         for argument in self.Arguments:
             print(prefix+'['+argument+']')
 
-
-# In[1]:
-
-
 import base64
 
 class PowerShellCmdLineTransformer(Transformer):
@@ -349,10 +343,6 @@ class PowerShellCmdLineParser:
 
         return parsed_result
 
-
-# In[7]:
-
-
 class CmdExeTransformer(Transformer):
     def __init__(self, debug = False):
         self.Debug = debug
@@ -434,9 +424,6 @@ class CmdExeParser:
             traceback.print_exc()
 
         return parsed_result
-
-
-# In[3]:
 
 
 import json
