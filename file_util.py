@@ -1,7 +1,7 @@
 import os
 import zipfile
         
-def LocateFile(filename):
+def locate_file(filename):
     paths=[]
     paths.append('.')
     telemetry_root=os.getenv('TELEMETRY_ROOT')

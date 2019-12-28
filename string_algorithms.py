@@ -23,7 +23,7 @@ class StringMatcher:
         self.Clusters={}
 
     def load_data(self, filename, data_type = 'String', data_format = 'csv', table_name = 'Default', column_name = 'Default', lower_case = False):
-        filename=file_util.LocateFile(filename)
+        filename=file_util.locate_file(filename)
         
         pd.set_option('display.max_colwidth', -1)
         if data_format == 'yml':
