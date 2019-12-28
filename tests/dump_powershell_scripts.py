@@ -2,8 +2,9 @@
 # coding: utf-8
 # pylint: disable=unused-wildcard-import
 
+import sys
+sys.path.append(r'..\elasticsearch_hunting')
 import datetime
-
 import powershell
 
 start_datetime = datetime.datetime.strptime('2019-05-01 19:40:00.0', '%Y-%m-%d %H:%M:%S.%f')
