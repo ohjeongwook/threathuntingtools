@@ -11,9 +11,9 @@ class QueryUtil:
     def __init__(self):
         self.Client = Elasticsearch()
 
-    def QueryEventIDs(self):
+    def query_event_ids(self):
         elastic_bool = []
-        elastic_bool.append({'match': {'winlog.provider_name': MicrosoftWindowsDNSClientProviderName}})
+        elastic_bool.append({'match': {'winlog.provider_name': MICROSOFT_WINDOWS_DNSCLIENT_PROVIDER_NAME}})
         query = Q({'bool': {'must': elastic_bool}})
         s = Search(using=self.Client, index="winlogbeat-*").query(query)
         s.source(includes=['winlog.provider_name', 'winlog.event_id'])
@@ -37,9 +37,9 @@ class QueryUtil:
         except:
             traceback.print_exc()
 
-    def QueryDistinctEventIDs(self):
+    def query_distinct_event_ids(self):
         elastic_bool = []
-        elastic_bool.append({'match': {'winlog.provider_name': MicrosoftWindowsDNSClientProviderName}})
+        elastic_bool.append({'match': {'winlog.provider_name': MICROSOFT_WINDOWS_DNSCLIENT_PROVIDER_NAME}})
         query = Q({'bool': {'must': elastic_bool}})
         s = Search(using=self.Client, index="winlogbeat-*").query(query)
         s.source(includes=['winlog.event_id', 'winlog.event_data.LogString'])
@@ -50,11 +50,11 @@ class QueryUtil:
         for e in sorted_distinct_distinct_event_ids:
             print("{0:50} {1}".format(e.key, e.doc_count))
 
-    def QueryQueryNames(self, size=6000, descending=True):
+    def query_query_names(self, size=6000, descending=True):
         winlog_event_data_name="winlog.event_data.QueryName"
 
         elastic_bool = []
-        elastic_bool.append({'match': {'winlog.provider_name': MicrosoftWindowsDNSClientProviderName}})
+        elastic_bool.append({'match': {'winlog.provider_name': MICROSOFT_WINDOWS_DNSCLIENT_PROVIDER_NAME}})
         query = Q({'bool': {'must': elastic_bool}})
 
         s = Search(using=self.Client, index="winlogbeat-*").query(query)
@@ -81,4 +81,4 @@ class QueryUtil:
 
 if __name__=='__main__':
     query_util=QueryUtil()
-    query_util.QueryQueryNames()
+    query_util.query_query_names()

@@ -15,7 +15,7 @@ class CommandLineData:
         self.Data=[]
         self.Targets=[]
         
-    def Load(self, filename):
+    def load(self, filename):
         with open(filename, 'r', encoding='utf8') as fd:
             try:
                 self.Entries=yaml.safe_load(fd)
@@ -29,10 +29,10 @@ class CommandLineData:
             except yaml.YAMLError as exc:
                 print(exc)                
 
-    def CountPattern(self, string, pattern):
+    def count_pattern(self, string, pattern):
         return string.count(pattern)
 
-    def ExtractPowerShellFeatures(self):
+    def extract_powershell_features(self):
         features=[]
         for entry in self.Entries:
             if entry['Detection']=='Malicious':
@@ -42,20 +42,20 @@ class CommandLineData:
 
             feature={}
             command=entry['Command']
-            feature['Exe Count']=self.CountPattern(command,'.exe')-self.CountPattern(command,'powershell.exe')
-            feature['Single Quote Count']=self.CountPattern(command,'\'')
-            feature['Pipe Count']=self.CountPattern(command,'|')
-            feature['Plus Count']=self.CountPattern(command,'+')
-            feature['Carret Count']=self.CountPattern(command,'^')
+            feature['Exe Count']=self.count_pattern(command,'.exe')-self.count_pattern(command,'powershell.exe')
+            feature['Single Quote Count']=self.count_pattern(command,'\'')
+            feature['Pipe Count']=self.count_pattern(command,'|')
+            feature['Plus Count']=self.count_pattern(command,'+')
+            feature['Carret Count']=self.count_pattern(command,'^')
             feature['Reference Count']=len(re.findall('{[0-9]+}', command))
             feature['Block Count']=len(re.findall('\[[^\[\]]+\]', command))
-            feature['Entropy']=Util.Entropy(command)
+            feature['Entropy']=Util.entry(command)
             feature['Weight']=entry['Weight']
             feature['Detection']=detection
 
             m=re.search(r'([a-zA-Z%][^\\\\//\';]*)\.(exe|ps1|bat|cmd)', command, re.I)
             if m:
-                feature['Command Entropy']=Util.Entropy(m.group(1))
+                feature['Command Entropy']=Util.entry(m.group(1))
             else:
                 feature['Command Entropy']=0
 

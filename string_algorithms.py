@@ -22,7 +22,7 @@ class StringMatcher:
     def __init__(self):
         self.Clusters={}
 
-    def LoadData(self, filename, data_type = 'String', data_format = 'csv', table_name = 'Default', column_name = 'Default', lower_case = False):
+    def load_data(self, filename, data_type = 'String', data_format = 'csv', table_name = 'Default', column_name = 'Default', lower_case = False):
         filename=file_util.LocateFile(filename)
         
         pd.set_option('display.max_colwidth', -1)
@@ -42,31 +42,31 @@ class StringMatcher:
 
         self.DataType = data_type
         self.LowerCase = lower_case
-        self.LoadTargetData(column_name)
+        self.load_target_data(column_name)
         
-    def AddStrings(self, command_lines, column_name='Default', data_type = 'String', lower_case = False):
+    def add_strings(self, command_lines, column_name='Default', data_type = 'String', lower_case = False):
         self.Data = pd.DataFrame(data={column_name: command_lines})
         self.DataType = data_type
         self.LowerCase = lower_case
-        self.LoadTargetData(column_name)
+        self.load_target_data(column_name)
 
-    def LoadTargetData(self, column_name):
+    def load_target_data(self, column_name):
         if self.LowerCase:
             self.TargetData = self.Data[column_name].str.lower()
         else:
             self.TargetData = self.Data[column_name]        
 
-    def PrintDataHead(self):
+    def print_data_head(self):
         print('The shape: %d x %d' % self.Data.shape)
         print(self.Data.head())
         
-    def GetDataCount(self):
+    def get_data_count(self):
         return self.Data.count()
 
-    def TrimData(self,start,end):
+    def trim_data(self,start,end):
         self.Data = self.Data.iloc[start:end]
 
-    def Ngrams(self, string, n=3):
+    def ngrams(self, string, n=3):
         if self.DataType == 'String':
             string = re.sub(r'[,-./]|\sBD',r'', string)
             ngrams = zip(*[string[i:] for i in range(n)])
@@ -79,11 +79,11 @@ class StringMatcher:
             replaced_string=re.sub("test_user_[a-fA-F0-9]+", "<normalized_path>", replaced_string)
             return re.sub(r"[A-Za-z]:\\[a-zA-Z0-9_+\\~\.]+", "<normalized_path>", replaced_string)
 
-    def GetTFIDFMatrix(self):
+    def get_tfidf_matrix(self):
         vectorizer = TfidfVectorizer(min_df=1, analyzer=self.Ngrams)
         return vectorizer.fit_transform(self.TargetData)
         
-    def PerformCosineSimilarity(self, A, B, ntop, lower_bound=0):
+    def perform_consine_similarity_analysis(self, A, B, ntop, lower_bound=0):
         # force A and B as a CSR matrix.
         # If they have already been CSR, there is no overhead
         A = A.tocsr()
@@ -112,14 +112,14 @@ class StringMatcher:
 
         return csr_matrix((data,indices,indptr),shape=(M,N))
     
-    def Analyze(self, threshold = 0.8):       
+    def analyze(self, threshold = 0.8):       
         t1 = time.time()
-        tf_idf_matrix=self.GetTFIDFMatrix()
-        self.SimilarityMatrix = self.PerformCosineSimilarity(tf_idf_matrix, tf_idf_matrix.transpose(), 10, threshold)
+        tf_idf_matrix=self.get_tfidf_matrix()
+        self.SimilarityMatrix = self.perform_consine_similarity_analysis(tf_idf_matrix, tf_idf_matrix.transpose(), 10, threshold)
         t = time.time()-t1
         print("Elapsed seconds:", t)
 
-    def _GetMatches(self, top=None):
+    def _get_matches(self, top=None):
         non_zeros = self.SimilarityMatrix.nonzero()
 
         sparserows = non_zeros[0]
@@ -143,15 +143,15 @@ class StringMatcher:
                               'right_side': right_side,
                                'similarity': similarity})
 
-    def GetMatches(self, size = None):
-        self.MatchesDF = self._GetMatches(top=size)
+    def get_matches(self, size = None):
+        self.MatchesDF = self._get_matches(top=size)
         #self.MatchesDF = self.MatchesDF[self.MatchesDF['similarity'] < 0.99999] # Remove all exact matches
         return self.MatchesDF
     
-    def GetMatchesCount(self):
+    def get_match_count(self):
         return self.MatchesDF.count()
     
-    def Cluster(self):
+    def cluster(self):
         non_zeros = self.SimilarityMatrix.nonzero()
 
         sparserows = non_zeros[0]
@@ -180,7 +180,7 @@ class StringMatcher:
                 
                 self.Clusters[cluster_index][rigth_index]=1
        
-    def DumpClusters(self, filename_prefix=r'clusters\custer-'):
+    def dump_clusters(self, filename_prefix=r'clusters\custer-'):
         dir_name=os.path.dirname(filename_prefix)
         
         if not os.path.isdir(dir_name):
@@ -201,20 +201,20 @@ class StringMatcher:
                     fd.write('\n')
                     fd.write('\n')
 
-    def GetClusterWitSize(self, cluster_size):
+    def get_cluster_with_size(self, cluster_size):
         cluster_indexes=[]
         for (cluster_index, data_indexes) in self.Clusters.items():
             if len(data_indexes) == cluster_size:
                 cluster_indexes.append(cluster_index)
         return cluster_indexes
 
-    def GetClusterDataIndexes(self, cluster_index):
+    def get_cluster_data_indexes(self, cluster_index):
         if not cluster_index in self.Clusters:
             return []
         
         return self.Clusters[cluster_index]
 
-    def GetClusterData(self, cluster_index):
+    def get_cluster_data(self, cluster_index):
         if not cluster_index in self.Clusters:
             return []
         
@@ -224,28 +224,28 @@ class StringMatcher:
             data_list.append(self.TargetData[data_index])
         return data_list
 
-    def GetClusterCounts(self):
+    def get_cluster_counts(self):
         cluster_counts=[]
         for (cluster_index, data_indexes) in self.Clusters.items():
             cluster_counts.append([cluster_index, len(data_indexes)])
         return cluster_counts
 
-    def SaveClusters(self, filename):
-        self.MakeDirs(filename)
+    def save_clusters(self, filename):
+        self.make_directories(filename)
         pickle.dump(self.Clusters, open(filename, "wb" ))
         
-    def LoadClusters(self, filename):        
+    def load_clusters(self, filename):        
         self.Clusters = pickle.load(open(filename, "rb" ))
 
-    def SaveSimilarityMatrix(self, filename):
-        self.MakeDirs(filename)
+    def save_similarity_matrix(self, filename):
+        self.make_directories(filename)
         save_npz(filename, self.SimilarityMatrix)
         
-    def LoadSimilarityMatrix(self, filename, column_name='Default'):
+    def load_similarity_matrix(self, filename, column_name='Default'):
         self.TargetData = self.Data[column_name]
         self.SimilarityMatrix = load_npz(filename)
 
-    def MakeDirs(self, filename):
+    def make_directories(self, filename):
         dir_name=os.path.dirname(filename)
         
         if not os.path.isdir(dir_name):

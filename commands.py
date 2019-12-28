@@ -22,13 +22,13 @@ class ProcessQuery:
         self.EndDateTime=end_datetime
         self.Process = Process(start_datetime=self.StartDateTime, end_datetime=self.EndDateTime, scan = True)
 
-    def OpenSQLite(self, filename):
+    def open_sqlite_database(self, filename):
         try:
             self.SqliteConn = sqlite3.connect(filename)
         except Error as e:
             print(e)
         
-    def CreateTable(self, field_names):
+    def create_table(self, field_names):
         self.FieldNames=[]
         field_create_table_lines=[]
         for field_name in field_names:
@@ -47,7 +47,7 @@ class ProcessQuery:
         except:
             traceback.print_exc()
         
-    def InsertData(self, fields):
+    def insert_data(self, fields):
         cur = self.SqliteConn.cursor()
         
         field_str=','.join(self.FieldNames)
@@ -62,7 +62,7 @@ class ProcessQuery:
         cur.execute(insert_statement, fields)
         return cur.lastrowid
 
-    def PrintWinLog(self, winlog, options):
+    def print_winlog(self, winlog, options):
         debug=False
         print('='*80)
         print('Hostname: ' + winlog.computer_name)
@@ -73,8 +73,8 @@ class ProcessQuery:
         print('')
         
         if options['enumerate_tree']:
-            process_tree=self.Process.GetProcessTree(winlog.event_data.ProcessGuid)
-            process_tree.Print()
+            process_tree=self.Process.get_process_tree(winlog.event_data.ProcessGuid)
+            process_tree.print()
         
         event_datetime = datetime.datetime.strptime(winlog.event_data.UtcTime, '%Y-%m-%d %H:%M:%S.%f')
         start_datetime = event_datetime - timedelta(seconds=60)
@@ -82,7 +82,7 @@ class ProcessQuery:
         
         if options['enumerate_events']:
             provider = Provider(hostname=winlog.computer_name, start_datetime=start_datetime, end_datetime=end_datetime, scan = True )
-            hits = provider.QueryEvents(process_id=winlog.event_data.ProcessId)
+            hits = provider.query_events(process_id=winlog.event_data.ProcessId)
             
             if options['full_dump']:
                 print('* hits')
@@ -99,17 +99,17 @@ class ProcessQuery:
                 for hit in hits:
                     try:
                         if debug:
-                            if hit.winlog.provider_name==SysMonProviderName:
+                            if hit.winlog.provider_name==SYSMON_PROVIDER_NAME:
                                 if hit.winlog.event_id in (1, 3, 7, 11, 12, 13, 17, 18):
                                     continue
-                            elif hit.winlog.provider_name==MicrosoftWindowsPowerShell:
+                            elif hit.winlog.provider_name==MICROSOFT_WINDOWS_POWERSHELL_PROVIDER_NAME:
                                 if hit.winlog.event_id in (4104, 40961, 53504, 40962, 4102):
                                     continue
 
                         print('>> %s %s (%d)' % (hit.winlog.provider_name, hit.winlog.task, hit.winlog.event_id))
                         
                         print_full_dump=False
-                        if hit.winlog.provider_name==SysMonProviderName:
+                        if hit.winlog.provider_name==SYSMON_PROVIDER_NAME:
                             if hit.winlog.event_id==1:
                                 pass
                             elif hit.winlog.event_id==3:
@@ -125,10 +125,10 @@ class ProcessQuery:
                             elif hit.winlog.event_id==18:
                                 print('\t%s - %s' % (hit.winlog.event_data.Image, hit.winlog.event_data.PipeName))
                                 
-                        elif hit.winlog.provider_name==MicrosoftWindowsPowerShell:
+                        elif hit.winlog.provider_name==MICROSOFT_WINDOWS_POWERSHELL_PROVIDER_NAME:
                             if hit.winlog.event_id==4104: # Execute a Remote Command
                                 print('\t%s' % hit.winlog.event_data.ScriptBlockText)
-                        elif hit.winlog.provider_name==MicrosoftWindowsDNSClientProviderName:
+                        elif hit.winlog.provider_name==MICROSOFT_WINDOWS_DNSCLIENT_PROVIDER_NAME:
                             #if hit.winlog.event_id==3020:
                             print('\t%s' % hit.winlog.event_data.QueryName)
                                 
@@ -142,7 +142,7 @@ class ProcessQuery:
                     except:
                         traceback.print_exc()
 
-    def ProcessWinLog(self, winlog, options):
+    def process_winlog(self, winlog, options):
         if options['output_filename']:
             if options['output_file_type'] in ('yml'):
                 if options['field_name_array']:
@@ -167,7 +167,7 @@ class ProcessQuery:
                             
                             
                     if self.SqliteConn!=None:
-                        self.InsertData(current_search_results)
+                        self.insert_data(current_search_results)
 
                     if len(current_search_results)==1:
                         self.SearchResults.append(current_search_results[0])
@@ -176,9 +176,9 @@ class ProcessQuery:
                 else:
                     self.SearchResults.append(winlog.to_dict())
         if options['verbose_level']>0:
-            self.PrintWinLog(winlog, options)
+            self.print_winlog(winlog, options)
 
-    def Search(self, options):
+    def search(self, options):
         if options['output_file_type']:
             output_file_type=options['output_file_type']
         elif options['output_filename']:
@@ -188,11 +188,11 @@ class ProcessQuery:
 
         if options['output_filename']:
             if output_file_type in ('db', 'sqlite'):
-                self.OpenSQLite(options['output_filename'])
-                self.CreateTable(field_names)
+                self.open_sqlite_database(options['output_filename'])
+                self.create_table(field_names)
                 
         self.SearchResults=[]
-        self.Process.Search(process_name=options['process_name'], process_id=options['process_id'], callback=self.ProcessWinLog, options=options)
+        self.Process.search(process_name=options['process_name'], process_id=options['process_id'], callback = self.process_winlog, options=options)
         if options['output_filename']:
             if output_file_type in ('yml'):
                 with open(options['output_filename'], 'w') as fd:
@@ -268,4 +268,4 @@ if __name__=='__main__':
     except:
         pass
             
-    process_query.Search(options)
+    process_query.search(options)

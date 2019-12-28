@@ -24,7 +24,7 @@ except ImportError:
     pass
 
 class ProviderInformation:
-    EventNameMap={
+    EVENT_NAME_MAP={
         'Microsoft-Windows-Sysmon':
         {
             1: "Process Create",
@@ -52,10 +52,10 @@ class ProviderInformation:
         }
     }
     @staticmethod
-    def GetEventIDName(provider_name, event_id):
-        if provider_name in ProviderInformation.EventNameMap:
-            if event_id in ProviderInformation.EventNameMap[provider_name]:
-                return ProviderInformation.EventNameMap[provider_name][event_id]
+    def get_event_id_name(provider_name, event_id):
+        if provider_name in ProviderInformation.EVENT_NAME_MAP:
+            if event_id in ProviderInformation.EVENT_NAME_MAP[provider_name]:
+                return ProviderInformation.EVENT_NAME_MAP[provider_name][event_id]
         return ''        
         
 class TelemetryStats:
@@ -70,14 +70,14 @@ class TelemetryStats:
         else:
             self.UsePlotLy = use_plotly
 
-    def GetEventCounts(self, event_id = None):
+    def get_event_counts(self, event_id = None):
         event_id_counts=[]
        
         current_datetime = self.StartDateTime
         while current_datetime < self.EndDateTime:
             provider = Provider(self.ProviderName, current_datetime, current_datetime+self.Interval)
-            total_event_counts = provider.GetEventCounts()
-            event_counts = provider.GetEventCounts(event_id = event_id)
+            total_event_counts = provider.get_event_counts()
+            event_counts = provider.get_event_counts(event_id = event_id)
 
             if total_event_counts==0:
                 percentage = 0
@@ -90,16 +90,16 @@ class TelemetryStats:
         df = pd.DataFrame(event_id_counts, columns =['StartDate', 'Count', 'Percentage']) 
         return df
 
-    def GetEventCountsList(self):
+    def get_event_counts_list(self):
         event_id_counts_list=[]
        
         current_datetime = self.StartDateTime
         while current_datetime < self.EndDateTime:
             provider = Provider(self.ProviderName, current_datetime, current_datetime+self.Interval)
             event_id_counts={}
-            for count in provider.GetEventIDCounts():
+            for count in provider.get_event_id_counts():
                 event_id=int(count['key'])
-                event_name=ProviderInformation.GetEventIDName(self.ProviderName, event_id)
+                event_name=ProviderInformation.get_event_id_name(self.ProviderName, event_id)
                 
                 if not event_name:
                     event_name='Event ID ' + count['key']
@@ -112,8 +112,8 @@ class TelemetryStats:
         df = pd.DataFrame(event_id_counts_list) 
         return df
     
-    def PlotEventCounts(self, event_id = None, y = 'Count'):
-        df = telemetry_stats.GetEventCounts(event_id)
+    def plot_event_counts(self, event_id = None, y = 'Count'):
+        df = telemetry_stats.get_event_counts(event_id)
         
         if self.UsePlotLy:
             data = [go.Bar(x=df.StartDate,
@@ -130,7 +130,7 @@ class TelemetryStats:
             ax.set_xticklabels(labels)
             plt.show()
             
-    def DrawStackedGraph(self, df, x='StartDate'):
+    def draw_stacked_graph(self, df, x='StartDate'):
         # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.plot.html
         try:
             pal = sns.color_palette("deep").as_hex() + sns.color_palette("bright").as_hex()
@@ -157,13 +157,13 @@ class TelemetryStats:
         ax.format_xdata = mdates.DateFormatter('%Y-%m-%d')
         plt.show()
         
-    def DrawEventCountsGraph(self):    
-        df=self.GetEventCountsList()
-        self.DrawStackedGraph(df)
+    def draw_event_counts_graph(self):    
+        df=self.get_event_counts_list()
+        self.draw_stacked_graph(df)
 
-    def GroupEvents(self, event_id, data_name='Image', aggregate_by_hostname = False, top_n = 0):
+    def group_events(self, event_id, data_name='Image', aggregate_by_hostname = False, top_n = 0):
         provider = Provider(self.ProviderName, self.StartDateTime, self.EndDateTime)
-        result=provider.AggregateByEventData(event_id=event_id,event_data_name =data_name, aggregate_by_hostname = aggregate_by_hostname)
+        result=provider.aggregate_by_event_data(event_id=event_id,event_data_name =data_name, aggregate_by_hostname = aggregate_by_hostname)
 
         if aggregate_by_hostname:
             for host_info in result:

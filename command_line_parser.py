@@ -10,11 +10,11 @@ import yaml
 
 class Util:
     @staticmethod
-    def Print(parsed_results, level=0):
+    def print(parsed_results, level=0):
         prefix=level*' '
         if type(parsed_results)==list:
             for parsed_result in parsed_results:
-                Util.Print(parsed_result, level+1)
+                Util.print(parsed_result, level+1)
 
         elif type(parsed_results)==dict:
             for (name,value) in parsed_results.items():
@@ -22,14 +22,14 @@ class Util:
                     print(prefix+'* '+name+': '+value)
                 else:
                     print(prefix+'+ '+name+':')
-                    Util.Print(value, level+1)
+                    Util.print(value, level+1)
         elif type(parsed_results)==str:
             print(prefix+': '+parsed_results)
         else:
             print(prefix+str(type(parsed_results)))
 
     @staticmethod
-    def ReadTestData(filename, file_type='yml', rerun_parser=False):
+    def read_test_data(filename, file_type='yml', rerun_parser=False):
         parsed_results=[]
         with open(filename, 'r', encoding='utf8') as fd:
             if file_type=='yml':
@@ -38,7 +38,7 @@ class Util:
                         if rerun_parser:
                             command_line_itertor=CommandLineItertor(parsed_result['CommandLine']['String'])      
                             cmd_line_parser=CommandLineParser(command_line_itertor, parsers=("cmd"))
-                            parsed_result=cmd_line_parser.Parse()       
+                            parsed_result=cmd_line_parser.parse()       
                         parsed_results.append(parsed_result)       
                 except yaml.YAMLError as exc:
                     print(exc)
@@ -47,13 +47,13 @@ class Util:
                     if rerun_parser:
                         command_line_itertor=CommandLineItertor(parsed_result['CommandLine']['String'])
                         cmd_line_parser=CommandLineParser(command_line_itertor, parsers=("cmd"))
-                        parsed_result=cmd_line_parser.Parse()
+                        parsed_result=cmd_line_parser.parse()
                     parsed_results.append(parsed_result)
 
         return parsed_results
     
     @staticmethod
-    def WriteTestData(filename, parsed_results):
+    def write_test_data(filename, parsed_results):
         with open(filename, 'w') as fd:
             yaml.dump(parsed_results, fd)        
 
@@ -88,13 +88,13 @@ class CommandLineItertor:
         self.InterpretState=State.InterpretSpecialChars
         self.Arguments=[]
         
-    def SetParsingMode(self, parsing_mode):
+    def set_parsing_mode(self, parsing_mode):
         self._ParsingMode=parsing_mode
 
-    def GetOriginalString(self):
+    def get_original_string(self):
         return self.InputString
 
-    def GetNextArgument(self):
+    def get_next_argument(self):
         argument=''
         quoted=False
 
@@ -152,9 +152,9 @@ class CommandLineItertor:
 
         elif self._ParsingMode==ParsingMode.PowerShell:
             argument=''
-            self._ConsumeDelimiters()
+            self._consume_delimiters()
             if len(self.InputString)>2 and len(self.InputString)>self.InputStringIndex and self.InputString[self.InputStringIndex]=='"' and self.InputString[-1]=='"':
-                single_double_quote_found=self.FindPowerShellEscapeStrings(self.InputStringIndex+1, len(self.InputString)-1)
+                single_double_quote_found=self.find_powershell_escape_strings(self.InputStringIndex+1, len(self.InputString)-1)
                    
                 if not single_double_quote_found:
                     argument=self.InputString[self.InputStringIndex+1:-1]
@@ -173,7 +173,7 @@ class CommandLineItertor:
 
         return argument
     
-    def FindPowerShellEscapeStrings(self, start, end):
+    def find_powershell_escape_strings(self, start, end):
         single_double_quote_found=False
         index=start
         while index<end-1:
@@ -185,14 +185,14 @@ class CommandLineItertor:
             index+=1
         return single_double_quote_found
 
-    def GetArgumentsList(self, start_index=0, quote_arguments=True):
+    def get_argument_list(self, start_index=0, quote_arguments=True):
         arguments=self.Arguments[start_index:]
         argument_list=[]
         for argument in arguments:
             argument_list.append(argument['String'])
         return argument_list
     
-    def GetArguments(self, start_index=0, quote_arguments=True):
+    def get_arguments(self, start_index=0, quote_arguments=True):
         arguments=self.Arguments[start_index:]
 
         if len(arguments)==1:
@@ -212,16 +212,16 @@ class CommandLineItertor:
                 argument_line+='"'
         return argument_line
     
-    def HasEnded(self):
+    def has_ended(self):
         if self.InputStringIndex>=len(self.InputString):
             return True
         return False
     
-    def ParseAll(self):
+    def parse_all(self):
         while self.InputStringIndex<len(self.InputString):
-            self.GetNextArgument()
+            self.get_next_argument()
             
-    def _ConsumeDelimiters(self):
+    def _consume_delimiters(self):
         while self.InterpretState==State.InterpretSpecialChars and self.InputStringIndex<len(self.InputString):
             ch=self.InputString[self.InputStringIndex]
 
@@ -231,16 +231,16 @@ class CommandLineItertor:
                 
             break
     
-    def GetRemainingString(self):
+    def get_remaining_string(self):
         return self.InputString[self.InputStringIndex:]
     
-    def GetArgumentString(self):
+    def get_argument_string(self):
         return self.InputString[self.ArgumentStartInputStringIndex:]
     
-    def GetCurrentArgumentIndex(self):
+    def get_current_argument_index(self):
         return len(self.Arguments)
     
-    def DumpList(self, prefix=''):
+    def dump_list(self, prefix=''):
         for argument in self.Arguments:
             print(prefix+'['+argument+']')
 
@@ -255,13 +255,13 @@ class PowerShellCmdLineTransformer(Transformer):
         self.Debug=debug
         self.CommandLine={'String': '', 'Switches': []}
 
-    def TraverseTree(self, item):
+    def traverse_tree(self, item):
         if type(item) == list:
             for element in item:
-                self.TraverseTree(element)
+                self.traverse_tree(element)
         elif type(item) == tree.Tree:
             for child in item.children:
-                self.TraverseTree(child)
+                self.traverse_tree(child)
 
         elif type(item)==lexer.Token:
             if item.type.endswith('_SWITCH'):
@@ -281,7 +281,7 @@ class PowerShellCmdLineTransformer(Transformer):
                     print('')
                     
     def value(self, args):
-        self.TraverseTree(args)
+        self.traverse_tree(args)
         return self.CommandLine
 
 class PowerShellCmdLineParser:
@@ -315,26 +315,26 @@ class PowerShellCmdLineParser:
             self.CommandLineIterator=CommandLineItertor(string, parsing_mode = ParsingMode.PowerShell)
         else:
             self.CommandLineIterator=string
-            self.CommandLineIterator.SetParsingMode(ParsingMode.PowerShell)
+            self.CommandLineIterator.set_parsing_mode(ParsingMode.PowerShell)
         self.Debug=debug
         self.ArgStartIndex=arg_start_index
 
-    def Parse(self):
+    def parse(self):
         if self.Debug:
             print('PowerShellCmdLineParser.Parse >>')
             
-        self.CommandLineIterator.ParseAll()
-        argument_string=self.CommandLineIterator.GetArguments(start_index=self.ArgStartIndex, quote_arguments=False)
+        self.CommandLineIterator.parse_all()
+        argument_string=self.CommandLineIterator.get_arguments(start_index=self.ArgStartIndex, quote_arguments=False)
 
         if self.Debug:
             print('argument_string: ' + argument_string)
     
         return {
             'PowerShellString': argument_string,
-            'ParseResult': self.ParseString(argument_string)
+            'ParseResult': self.parse_string(argument_string)
         }
         
-    def ParseString(self, command_line):
+    def parse_string(self, command_line):
         parsed_result = None
         parser = Lark(self.CmdExeGrammar, parser='lalr', start='value', debug=True) 
         
@@ -358,16 +358,16 @@ class CmdExeTransformer(Transformer):
         self.Debug=debug
         self.CommandLines=[]
 
-    def TraverseTree(self, item):
+    def traverse_tree(self, item):
         if type(item) == list:
             for element in item:
-                self.TraverseTree(element)
+                self.traverse_tree(element)
 
         elif type(item) == tree.Tree:
             if item.data == 'cmdline':
                 self.CommandLines.append({'CommandLine': '', 'Switches': []})
             for child in item.children:
-                self.TraverseTree(child)
+                self.traverse_tree(child)
 
         elif type(item)==lexer.Token:
             if item.type == 'SWITCH':
@@ -375,14 +375,14 @@ class CmdExeTransformer(Transformer):
             elif item.type in ('COMMAND', 'ESCAPED_COMMAND'):
                 self.CommandLines[-1]['CommandLine'] = {'String': item.value}
                 command_line_parser=CommandLineParser(item.value)
-                command_line_parse_result=command_line_parser.Parse()
+                command_line_parse_result=command_line_parser.parse()
                 self.CommandLines[-1]['CommandLine']['ParseResult']=command_line_parse_result
 
             elif item.type == 'AMPERSAND':
                 self.CommandLines.append({'CommandLine': '', 'Switches': []})
 
     def value(self, args):
-        self.TraverseTree(args)
+        self.traverse_tree(args)
         return self.CommandLines
 
 class CmdExeParser:
@@ -403,24 +403,24 @@ class CmdExeParser:
         self.StartArg=start_arg
         self.Debug=debug
 
-    def Parse(self):
+    def parse(self):
         if self.Debug:
             print('CmdExeParser.Parse >>')
             
-        self.CommandLineIterator.ParseAll()
-        normalized_cmd_line=self.CommandLineIterator.GetArguments(self.StartArg)
+        self.CommandLineIterator.parse_all()
+        normalized_cmd_line=self.CommandLineIterator.get_arguments(self.StartArg)
         
         if self.Debug:
             print("Normalized Command Line: [" + normalized_cmd_line + "]")
 
-        parsed_result=self.ParseString(normalized_cmd_line)
+        parsed_result=self.parse_string(normalized_cmd_line)
 
         return {
             'String': normalized_cmd_line,
             'ParseResult': parsed_result
         }
 
-    def ParseString(self,command_line):
+    def parse_string(self,command_line):
         parsed_result = None
         parser = Lark(self.CmdExeGrammar, parser='lalr', start='value')
 
@@ -451,19 +451,19 @@ class CommandLineParser:
         self.Debug=debug
         self.Parsers=parsers
 
-    def Parse(self):
-        command=self.CommandLineIterator.GetNextArgument()
+    def parse(self):
+        command=self.CommandLineIterator.get_next_argument()
 
         if "cmd" in self.Parsers and command.lower() in ('cmd', 'cmd.exe'):
-            argument_parsed_result=CmdExeParser(self.CommandLineIterator, debug=self.Debug).Parse()
+            argument_parsed_result=CmdExeParser(self.CommandLineIterator, debug=self.Debug).parse()
         elif "powershell" in self.Parsers and command.lower() in ('powershell', 'powershell.exe'):
-            argument_parsed_result=PowerShellCmdLineParser(self.CommandLineIterator, arg_start_index=1, debug=self.Debug).Parse()         
+            argument_parsed_result=PowerShellCmdLineParser(self.CommandLineIterator, arg_start_index=1, debug=self.Debug).parse()         
         else:
-            current_argument_index=self.CommandLineIterator.GetCurrentArgumentIndex()
-            self.CommandLineIterator.ParseAll()
+            current_argument_index=self.CommandLineIterator.get_current_argument_index()
+            self.CommandLineIterator.parse_all()
 
             argument_list=[]
-            for argument_str in self.CommandLineIterator.GetArgumentsList(current_argument_index+1):
+            for argument_str in self.CommandLineIterator.get_argument_list(current_argument_index+1):
                 argument={'String': argument_str}
                 try:
                     decoded_argument=base64.b64decode(argument_str).decode("utf-16")
@@ -476,7 +476,7 @@ class CommandLineParser:
 
         return {
             'CommandLine': {
-                'String': self.CommandLineIterator.GetOriginalString(),
+                'String': self.CommandLineIterator.get_original_string(),
                 'ParseResult': {
                     'Command': command,
                     'Argument': argument_parsed_result

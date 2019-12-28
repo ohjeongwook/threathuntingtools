@@ -15,8 +15,8 @@ class Events:
     def __init__(self):
         self.Client = Elasticsearch()    
 
-    def DumpByEventCount(self):
-        s = Search(using=self.Client, index=WinLogBeatIndex)
+    def dump_event_counts(self):
+        s = Search(using=self.Client, index=WINLOGBEAT_INDEX)
         s.source(includes=['winlog.provider_name', 'winlog.event_id'])
         s.aggs.bucket('distinct_provider_names', 'terms', field='winlog.provider_name', size=100000)
         response = s.execute()
@@ -54,7 +54,7 @@ class Provider:
         else:
             self.DTRange = None
             
-    def GetDefaultQuery(self):
+    def get_default_query(self):
         elastic_bool = []
         
         if self.ProviderName:
@@ -62,8 +62,8 @@ class Provider:
         
         return elastic_bool
         
-    def Search(self, query, get_count=False, includes=None, size=1000):
-        s = Search(using=self.Client, index=WinLogBeatIndex).query(query)
+    def search(self, query, get_count=False, includes=None, size=1000):
+        s = Search(using=self.Client, index=WINLOGBEAT_INDEX).query(query)
         if self.DTRange!=None:
             s = s.filter('range', **self.DTRange)
 
@@ -83,30 +83,30 @@ class Provider:
 
         return hits
         
-    def GetCount(self, query):
-        return self.Search(query, get_count=True)
+    def get_count(self, query):
+        return self.search(query, get_count=True)
 
-    def GetEventCounts(self, event_id = None):
-        elastic_bool = self.GetDefaultQuery()
+    def get_event_counts(self, event_id = None):
+        elastic_bool = self.get_default_query()
            
         if event_id!=None:
             elastic_bool.append({'match': {'winlog.event_id': event_id}})
 
-        return self.GetCount(Q({'bool': {'must': elastic_bool}}))
+        return self.get_count(Q({'bool': {'must': elastic_bool}}))
     
-    def GetGroupedEventCounts(self):
-        elastic_bool = self.GetDefaultQuery()
+    def get_grouped_event_counts(self):
+        elastic_bool = self.get_default_query()
            
         if event_id!=None:
             elastic_bool.append({'match': {'winlog.event_id': event_id}})
 
-        return self.GetCount(Q({'bool': {'must': elastic_bool}}))
+        return self.get_count(Q({'bool': {'must': elastic_bool}}))
 
-    def GetEventIDCounts(self):
-        elastic_bool = self.GetDefaultQuery()
+    def get_event_id_counts(self):
+        elastic_bool = self.get_default_query()
 
         query = Q({'bool': {'must': elastic_bool}})
-        s = Search(using=self.Client, index=WinLogBeatIndex).query(query)
+        s = Search(using=self.Client, index=WINLOGBEAT_INDEX).query(query)
         if self.DTRange!=None:
             s = s.filter('range', **self.DTRange)
         s.source(includes=['winlog.event_id', 'winlog.event_data.LogString'])
@@ -115,13 +115,13 @@ class Provider:
 
         return sorted(response.aggregations.distinct_event_ids, key = lambda kv:(kv.doc_count, kv.key), reverse = True)
     
-    def PrintEventIDCounts(self):
+    def print_event_id_counts(self):
         print("{0:50} {1}".format("Event ID", "Count"))
-        for e in self.GetEventIDCounts():
+        for e in self.get_event_id_counts():
             print("{0:50} {1}".format(e.key, e.doc_count))
 
-    def QueryEvents(self, event_id = None, event_data_name = None, event_data_value = None, process_id = None, process_guid = None, size = 1000):
-        elastic_bool = self.GetDefaultQuery()
+    def query_events(self, event_id = None, event_data_name = None, event_data_value = None, process_id = None, process_guid = None, size = 1000):
+        elastic_bool = self.get_default_query()
        
         if self.Hostname != None:
             elastic_bool.append({'match': {'host.hostname': self.Hostname}})
@@ -149,15 +149,15 @@ class Provider:
         if process_guid!=None:
             elastic_bool.append({'match': {'winlog.event_data.ProcessGuid': event_data_value}})
 
-        return self.Search(Q({'bool': {'must': elastic_bool}}))
+        return self.search(Q({'bool': {'must': elastic_bool}}))
 
-    def DumpEvents(self, event_id = None, print_event_meta_data = False, call_back = None):
-        elastic_bool = self.GetDefaultQuery()
+    def dump_events(self, event_id = None, print_event_meta_data = False, call_back = None):
+        elastic_bool = self.get_default_query()
        
         if event_id != None:
             elastic_bool.append({'match': {'winlog.event_id': event_id}})
 
-        for hit in self.Search(Q({'bool': {'must': elastic_bool}})):
+        for hit in self.search(Q({'bool': {'must': elastic_bool}})):
             if call_back != None:
                 call_back(hit)
             else:
@@ -170,8 +170,8 @@ class Provider:
                     except:
                         pprint.pprint(hit.to_dict())
 
-    def AggregateByEventData(self, event_id = None, event_data_name = "Image", sub_event_data_name = None, bucket_size = 1000, sub_bucket_size = 100, threshold = None, filter_event_data_name = '', filter_event_data_value = '', aggregate_by_hostname = False):
-        elastic_bool = self.GetDefaultQuery()
+    def aggregate_by_event_data(self, event_id = None, event_data_name = "Image", sub_event_data_name = None, bucket_size = 1000, sub_bucket_size = 100, threshold = None, filter_event_data_name = '', filter_event_data_value = '', aggregate_by_hostname = False):
+        elastic_bool = self.get_default_query()
        
         if event_id != None:
             elastic_bool.append({'match': {'winlog.event_id': event_id}})
@@ -217,27 +217,27 @@ class Provider:
         
         return response.aggregations[event_data_name]
     
-    def DumpByEventData(self, event_id = None, event_data_name = "Image", sub_event_data_name = None, bucket_size = 1000, sub_bucket_size = 100, threshold = 100):
+    def dump_by_event_data(self, event_id = None, event_data_name = "Image", sub_event_data_name = None, bucket_size = 1000, sub_bucket_size = 100, threshold = 100):
         print("{0:80} {1}".format(event_data_name, "Count"))
-        for e in provider.AggregateByEventData(event_id = event_id, event_data_name = event_data_name, sub_event_data_name = sub_event_data_name, bucket_size = bucket_size, sub_bucket_size = sub_bucket_size, threshold = threshold):
+        for e in provider.aggregate_by_event_data(event_id = event_id, event_data_name = event_data_name, sub_event_data_name = sub_event_data_name, bucket_size = bucket_size, sub_bucket_size = sub_bucket_size, threshold = threshold):
             print("{0:80} {1}".format(e.key, e.doc_count))
             
             if sub_event_data_name and sub_event_data_name in e:
                 for bucket in e[sub_event_data_name]['buckets']:
                     print("    {0:76} {1}".format(bucket.key, bucket.doc_count))
 
-    def DumpSummary(self, print_event_meta_data = False):
+    def dump_summary(self, print_event_meta_data = False):
         print("{0:50} {1}".format("Event ID", "Count"))
-        for e in self.GetEventIDCounts():
+        for e in self.get_event_id_counts():
             print("{0:50} {1}".format(e.key, e.doc_count))
 
-        self.DumpEvents(print_event_meta_data = print_event_meta_data)
+        self.dump_events(print_event_meta_data = print_event_meta_data)
         
-    def DumpEventSummary(self):
-        elastic_bool = self.GetDefaultQuery()
+    def dump_event_summary(self):
+        elastic_bool = self.get_default_query()
 
         code2action={}
-        for hit in self.Search(Q({'bool': {'must': elastic_bool}})):
+        for hit in self.search(Q({'bool': {'must': elastic_bool}})):
             try:
                 code2action[hit.event.code] = hit.event.action
             except:
@@ -250,25 +250,25 @@ class File:
     def __init__(self, hostname = None, start_datetime = None, end_datetime = None, scan = False):
         self.Hostname = hostname
         self.Scan = scan
-        self.Provider = Provider(SysMonProviderName, start_datetime = start_datetime, end_datetime = end_datetime, scan = scan)
+        self.Provider = Provider(SYSMON_PROVIDER_NAME, start_datetime = start_datetime, end_datetime = end_datetime, scan = scan)
         
-    def AggregateByImageTargetFilename(self):
-        results=self.Provider.AggregateByEventData(event_id = 11, event_data_name = "Image", sub_event_data_name = "TargetFilename", bucket_size = 1000, sub_bucket_size = 100, threshold = 100)
+    def aggregate_by_image_target_filename(self):
+        results=self.Provider.aggregate_by_event_data(event_id = 11, event_data_name = "Image", sub_event_data_name = "TargetFilename", bucket_size = 1000, sub_bucket_size = 100, threshold = 100)
 
         for target_filename in results[0]['TargetFilename']:
             print(target_filename.key, target_filename.doc_count)
 
         
-    def AggregateByImage(self):
-        results=self.Provider.AggregateByEventData(event_id = 11, event_data_name = "Image", bucket_size = 1000)
+    def aggregate_by_image(self):
+        results=self.Provider.aggregate_by_event_data(event_id = 11, event_data_name = "Image", bucket_size = 1000)
 
         for image in results:
             print('%s: %d' % (image.key, image.doc_count))
 
-    def AggregateByTargetFilename(self, image, size = 1000):
+    def aggregate_by_target_filename(self, image, size = 1000):
         # [Allow for `scan` with aggregations #580](https://github.com/elastic/elasticsearch-dsl-py/issues/580)
         filenames=[]
-        for hit in self.Provider.QueryEvents(event_id = 11, event_data_name = 'Image',event_data_value = image, size = size):
+        for hit in self.Provider.query_events(event_id = 11, event_data_name = 'Image',event_data_value = image, size = size):
             filenames.append(hit.winlog.event_data.TargetFilename)
         return filenames
 

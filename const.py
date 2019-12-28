@@ -1,4 +1,4 @@
-WinLogBeatIndex = "winlogbeat-*"
-SysMonProviderName = "Microsoft-Windows-Sysmon"
-MicrosoftWindowsDNSClientProviderName="Microsoft-Windows-DNS-Client"
-MicrosoftWindowsPowerShell="Microsoft-Windows-PowerShell"
+WINLOGBEAT_INDEX = "winlogbeat-*"
+SYSMON_PROVIDER_NAME = "Microsoft-Windows-Sysmon"
+MICROSOFT_WINDOWS_DNSCLIENT_PROVIDER_NAME="Microsoft-Windows-DNS-Client"
+MICROSOFT_WINDOWS_POWERSHELL_PROVIDER_NAME="Microsoft-Windows-PowerShell"

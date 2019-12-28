@@ -14,19 +14,19 @@ from const import *
 
 class Telemetry:
     def __init__(self, hostname='', start_datetime = None, end_datetime = None, scan = False):
-        self.PowerShellProvider = Provider(MicrosoftWindowsPowerShell, hostname=hostname, start_datetime=start_datetime, end_datetime=end_datetime, scan = scan )
+        self.PowerShellProvider = Provider(MICROSOFT_WINDOWS_POWERSHELL_PROVIDER_NAME, hostname=hostname, start_datetime=start_datetime, end_datetime=end_datetime, scan = scan )
         self.ScriptBlocks=[]
 
-    def DumpSummary(self):
+    def dump_summary(self):
         print("* Event Summary:")
-        self.PowerShellProvider.DumpEventSummary()
+        self.PowerShellProvider.dump_event_summary()
         print("")
         print("* Summary:")
 
-    def GetScriptBlocks(self, call_back=None):
-        return self.PowerShellProvider.DumpEvents(event_id=4104, call_back=call_back)
+    def get_script_blocks(self, call_back=None):
+        return self.PowerShellProvider.dump_events(event_id=4104, call_back=call_back)
         
-    def ProcessScriptBlock(self, hit):
+    def process_script_block(self, hit):
         script_block_info={}
         script_block_info['Hostname'] = hit.host.hostname
         script_block_info['Timestamp'] = hit['@timestamp']
@@ -45,10 +45,10 @@ class Telemetry:
 
         self.ScriptBlocks.append(script_block_info)
         
-    def Analyze(self):
-        self.PowerShellProvider.DumpEvents(event_id=4104, call_back=self.ProcessScriptBlock)
+    def analyze(self):
+        self.PowerShellProvider.dump_events(event_id=4104, call_back=self.process_script_block)
         
-    def DumpScriptBlocks(self):
+    def dump_script_blocks(self):
         for script_block_info in self.ScriptBlocks:
             print('\tHostname: %s' % script_block_info['Hostname'])
             print('\tTimestamp: %s' % script_block_info['Timestamp'])
@@ -58,8 +58,8 @@ class Telemetry:
             print('\tScriptBlockText: %s' % script_block_info['ScriptBlockText'][0:50])
             print('')
 
-    def Find(self, process_id):
-        return self.PowerShellProvider.QueryEvents(event_id=None, process_id=process_id)
+    def find(self, process_id):
+        return self.PowerShellProvider.query_events(event_id=None, process_id=process_id)
 
 class Script:
     def __init__(self, script_block_id, message_total):
@@ -67,16 +67,16 @@ class Script:
         self.MessageList = [''] * message_total
         self.Path = ''
         
-    def AddMessage(self, message_number, script_block_text):
+    def add_message(self, message_number, script_block_text):
         if message_number < self.MessageTotal:
             self.MessageList[message_number] = script_block_text
         else:
             print("* Error:")
             
-    def AddPath(self, path):
+    def add_path(self, path):
         self.Path = path
         
-    def GetMessage(self):
+    def get_message(self):
         full_message = ''
         for message in self.MessageList:
             full_message += message
@@ -86,9 +86,9 @@ class ScriptProcessor:
     def __init__(self, start_datetime, end_datetime, scan=True):
         self.ScriptBlocks={}
         self.PowerShell = Telemetry(start_datetime=start_datetime, end_datetime=end_datetime, scan=scan)
-        self.PowerShell.GetScriptBlocks(self.ConstructScriptBlock)
+        self.PowerShell.get_script_blocks(self.construct_script_block)
 
-    def ConstructScriptBlock(self, hit):
+    def construct_script_block(self, hit):
         message_total = int(hit.winlog.event_data.MessageTotal)
         message_number = int(hit.winlog.event_data.MessageNumber) - 1
 
@@ -96,26 +96,26 @@ class ScriptProcessor:
         if not hit.winlog.event_data.ScriptBlockId in self.ScriptBlocks:
             self.ScriptBlocks[hit.winlog.event_data.ScriptBlockId] = Script(hit.winlog.event_data.ScriptBlockId, message_total)
 
-        self.ScriptBlocks[hit.winlog.event_data.ScriptBlockId].AddMessage(message_number, hit.winlog.event_data.ScriptBlockText)
+        self.ScriptBlocks[hit.winlog.event_data.ScriptBlockId].add_message(message_number, hit.winlog.event_data.ScriptBlockText)
 
         if 'Path' in hit.winlog.event_data:
-            self.ScriptBlocks[hit.winlog.event_data.ScriptBlockId].AddPath(hit.winlog.event_data.Path)
+            self.ScriptBlocks[hit.winlog.event_data.ScriptBlockId].add_path(hit.winlog.event_data.Path)
 
-    def Dump(self, count=10):
+    def dump(self, count=10):
         i=0
         for (script_block_id, powershell_script) in self.ScriptBlocks.items():
             print('='*80)
-            print(powershell_script.GetMessage()[0:100])
+            print(powershell_script.get_message()[0:100])
             i+=1
             if i>=count:
                 break
                 
-    def GetColumns(self):
+    def get_columns(self):
         script_block_ids=[]
         script_block_text_list = []
         for (script_block_id, powershell_script) in self.ScriptBlocks.items():
             script_block_ids.append(script_block_id)
-            script_block_text_list.append(powershell_script.GetMessage())
+            script_block_text_list.append(powershell_script.get_message())
 
         return (script_block_ids, script_block_text_list)
 
@@ -126,31 +126,31 @@ class Commands:
         self.ParsedResults=[]
         
         if filename:
-            self.ReadSamples(self.Filename)
+            self.read_samples(self.Filename)
         
-    def ReadSamples(self, filename):
-        self.ParsedResults+=Util.ReadTestData(filename)
+    def read_samples(self, filename):
+        self.ParsedResults+=Util.read_test_data(filename)
         
-    def CollectPowerShellCommands(self):
+    def collect_powershell_commands(self):
         self.Commands=[]
-        self.TraverseParseTree(self.ParsedResults)
+        self.traverse_parse_tree(self.ParsedResults)
         
-    def Cluster(self):
-        self.StringMatcher.AddStrings(self.Commands, "PowerShellCommand")
-        self.StringMatcher.Analyze('PowerShellCommand', threshold = 0.7)
-        self.StringMatcher.SaveSimilarityMatrix(r"data\PowerShellCommands-SimilarityMatrix.npz")
+    def cluster(self):
+        self.StringMatcher.add_strings(self.Commands, "PowerShellCommand")
+        self.StringMatcher.analyze('PowerShellCommand', threshold = 0.7)
+        self.StringMatcher.save_similarity_matrix(r"data\PowerShellCommands-SimilarityMatrix.npz")
         
-        self.StringMatcher.GetMatches(None)
-        self.StringMatcher.GetMatchesCount()        
+        self.StringMatcher.get_matches(None)
+        self.StringMatcher.get_match_count()        
 
-        self.StringMatcher.Cluster()
-        self.StringMatcher.SaveClusters(r"data\PowerShellCommands-Clusters.pkl")        
+        self.StringMatcher.cluster()
+        self.StringMatcher.save_clusters(r"data\PowerShellCommands-Clusters.pkl")        
         
-    def TraverseParseTree(self, parsed_results, paths = [], level=0, debug=False):
+    def traverse_parse_tree(self, parsed_results, paths = [], level=0, debug=False):
         prefix=level*' '
         if type(parsed_results)==list:
             for parsed_result in parsed_results:
-                self.TraverseParseTree(parsed_result, paths, level+1, debug=debug)
+                self.traverse_parse_tree(parsed_result, paths, level+1, debug=debug)
 
         elif type(parsed_results)==dict:
             for (name,value) in parsed_results.items():
@@ -167,7 +167,7 @@ class Commands:
                         if debug:
                             print('')
 
-                self.TraverseParseTree(value, paths + [name] , level+1, debug=debug)
+                self.traverse_parse_tree(value, paths + [name] , level+1, debug=debug)
         elif type(parsed_results)==str:
             pass
         else:
@@ -342,7 +342,7 @@ class Detector:
     def __init__(self):
         self.Detections=[]
     
-    def Scan(self, powershell_command):
+    def scan(self, powershell_command):
         debug=0
         detections=[]
         matched_rule_infos={}
@@ -391,7 +391,7 @@ class Detector:
                    'Detection': detection_str}
         self.Detections.append(detection)
     
-    def DumpStatistics(self):
+    def dump_statistics(self):
         detection_names={}
         weights={}
         for detection in self.Detections:    
@@ -416,7 +416,7 @@ class Detector:
         pprint.pprint(weights)
         print('')
         
-    def Write(self,filename):
+    def write(self,filename):
         with open(filename, 'w') as fd:
             yaml.dump(self.Detections, fd)
 

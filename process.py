@@ -18,22 +18,22 @@ class ProcessTree:
         self.RootProcessIdList = []
         self.ProcessInfoMap={}
 
-    def AddProcessMap(self, parent_guid, child_guid):
+    def add_process_map(self, parent_guid, child_guid):
         if not parent_guid in self.ProcessMap:
             self.ProcessMap[parent_guid] = []
 
         self.ProcessMap[parent_guid].append(child_guid)
         self.ParentMap[child_guid]=parent_guid
 
-    def AddRootProcessId(self, process_id):
+    def add_root_process_id(self, process_id):
         self.RootProcessIdList.append(process_id)
         
-    def FindRootPids(self):
+    def find_root_pids(self):
         for process_id in self.ProcessMap.keys():
             if not process_id in self.ParentMap:
                 self.RootProcessIdList.append(process_id)
 
-    def AddProcessInfo(self, event_data):
+    def add_process_info(self, event_data):
         if not event_data.ParentProcessGuid in self.ProcessInfoMap:
             self.ProcessInfoMap[event_data.ParentProcessGuid] = {
                 'Image': event_data.ParentImage,
@@ -43,7 +43,7 @@ class ProcessTree:
 
         self.ProcessInfoMap[event_data.ProcessGuid] = event_data.to_dict()
 
-    def Find(self, process_name = None, process_id = None):
+    def find(self, process_name = None, process_id = None):
         traced_process_tree_list=[]
         for (process_guid, process_info) in self.ProcessInfoMap.items():
             found = False
@@ -59,10 +59,10 @@ class ProcessTree:
             current_process_guid = process_guid            
             while current_process_guid in self.ParentMap:
                 parent_process_guid = self.ParentMap[current_process_guid]
-                traced_process_tree.AddProcessMap(parent_process_guid, current_process_guid)
+                traced_process_tree.add_process_map(parent_process_guid, current_process_guid)
                 current_process_guid = parent_process_guid
 
-            traced_process_tree.AddRootProcessId(current_process_guid)
+            traced_process_tree.add_root_process_id(current_process_guid)
 
             if process_guid in self.ProcessMap:
                 traced_process_tree.ProcessMap[process_guid] = copy.deepcopy(self.ProcessMap[process_guid])
@@ -72,7 +72,7 @@ class ProcessTree:
 
         return traced_process_tree_list
 
-    def _Print(self, process_guid, level = 0):
+    def _print(self, process_guid, level = 0):
         if process_guid in self.ProcessInfoMap:
             prefix_str = ' ' * level
             
@@ -84,11 +84,11 @@ class ProcessTree:
 
         if process_guid in self.ProcessMap:
             for child_process_guid in self.ProcessMap[process_guid]:
-                self._Print(child_process_guid, level = level+1)
+                self._print(child_process_guid, level = level+1)
 
-    def Print(self, level = 0):
+    def print(self, level = 0):
         for root_process_guid in self.RootProcessIdList:
-            self._Print(root_process_guid, level = 0)
+            self._print(root_process_guid, level = 0)
 
 class Process:
     def __init__(self, hostname = None, start_datetime = None, end_datetime = None, scan = False):
@@ -110,9 +110,9 @@ class Process:
 
         self.Client = Elasticsearch()
     
-    def GetDefaultElasticBool(self, process_id=None, process_name=None):
+    def get_default_elastic_bool_expression(self, process_id=None, process_name=None):
         elastic_bool = []
-        elastic_bool.append({'match': {'winlog.provider_name': SysMonProviderName}})
+        elastic_bool.append({'match': {'winlog.provider_name': SYSMON_PROVIDER_NAME}})
         elastic_bool.append({'match': {'winlog.event_id': 1}})
         
         if self.Hostname != None and self.Hostname:
@@ -126,7 +126,7 @@ class Process:
 
         return elastic_bool
         
-    def _Search(self, query):
+    def _search(self, query):
         s = Search(using=self.Client, index="winlogbeat-*").query(query)
 
         if self.DTRange!=None:
@@ -140,8 +140,8 @@ class Process:
         else:
             return s.execute().hits
         
-    def FindProcessByGuid(self, process_guid, find_parent = True):
-        elastic_bool=self.GetDefaultElasticBool()
+    def find_process_by_guid(self, process_guid, find_parent = True):
+        elastic_bool=self.get_default_elastic_bool_expression()
 
         if find_parent:
             elastic_bool.append({'match': {'winlog.event_data.ProcessGuid': process_guid}})
@@ -150,18 +150,18 @@ class Process:
 
         query = Q({'bool': {'must': elastic_bool}})
 
-        for hit in self._Search(query):
+        for hit in self._search(query):
             return hit
         
         return None
 
-    def Search(self, process_id = None, process_name = None, create_time = None, callback=None, options=None):
-        elastic_bool=self.GetDefaultElasticBool(process_id=process_id, process_name=process_name)
+    def search(self, process_id = None, process_name = None, create_time = None, callback=None, options=None):
+        elastic_bool=self.get_default_elastic_bool_expression(process_id=process_id, process_name=process_name)
         query = Q({'bool': {'must': elastic_bool}})
         query = Q({'bool': {'must': elastic_bool}})
 
         process_list=[]
-        for hit in self._Search(query):
+        for hit in self._search(query):
             if callback is not None:
                 callback(hit.winlog, options)
             else:
@@ -169,19 +169,19 @@ class Process:
 
         return process_list
 
-    def FindProcessTrees(self, process_id = None, process_name = None, create_time = None):
-        elastic_bool=self.GetDefaultElasticBool(process_id=process_id, process_name=process_name)        
+    def find_process_trees(self, process_id = None, process_name = None, create_time = None):
+        elastic_bool=self.get_default_elastic_bool_expression(process_id=process_id, process_name=process_name)        
         query = Q({'bool': {'must': elastic_bool}})
 
         process_tree_list=[]
-        for hit in self._Search(query):
-            process_tree_list.append(self.GetProcessTree(hit.winlog.event_data.ProcessGuid))
+        for hit in self._search(query):
+            process_tree_list.append(self.get_process_tree(hit.winlog.event_data.ProcessGuid))
         return process_tree_list
             
-    def _FindProcessChainByGuid(self, process_guid, find_parent = True):
+    def _find_process_chain_by_guid(self, process_guid, find_parent = True):
         current_process_guid = process_guid
         while current_process_guid != None:
-            hit = self.FindProcessByGuid(current_process_guid, find_parent)
+            hit = self.find_process_by_guid(current_process_guid, find_parent)
 
             if hit == None:
                 print('No hit')
@@ -194,7 +194,7 @@ class Process:
                 print('child -> ' + hit.winlog.event_data.ProcessGuid)
                 current_process_guid = hit.winlog.event_data.ProcessGuid
 
-    def _FindProcessChain(self, process_tree, process_guid, find_parent = True):
+    def _find_process_chain(self, process_tree, process_guid, find_parent = True):
         current_process_guid = process_guid
         
         checked_process_guids={}
@@ -204,40 +204,40 @@ class Process:
                 break
 
             checked_process_guids[current_process_guid]=1
-            hit = self.FindProcessByGuid(current_process_guid, find_parent)
+            hit = self.find_process_by_guid(current_process_guid, find_parent)
 
             if hit == None:
                 break
                 
             if find_parent:
-                process_tree.AddProcessMap(hit.winlog.event_data.ParentProcessGuid, current_process_guid)
+                process_tree.add_process_map(hit.winlog.event_data.ParentProcessGuid, current_process_guid)
                 current_process_guid = hit.winlog.event_data.ParentProcessGuid
             else:
-                process_tree.AddProcessMap(current_process_guid, hit.winlog.event_data.ProcessGuid)
+                process_tree.add_process_map(current_process_guid, hit.winlog.event_data.ProcessGuid)
                 current_process_guid = hit.winlog.event_data.ProcessGuid
                 
-            process_tree.AddProcessInfo(hit.winlog.event_data)
+            process_tree.add_process_info(hit.winlog.event_data)
 
         return current_process_guid
         
-    def GetProcessTree(self, process_guid):
+    def get_process_tree(self, process_guid):
         process_tree = ProcessTree()
-        self._FindProcessChain(process_tree, process_guid, find_parent = False)
-        process_tree.AddRootProcessId(self._FindProcessChain(process_tree, process_guid, find_parent = True))
+        self._find_process_chain(process_tree, process_guid, find_parent = False)
+        process_tree.add_root_process_id(self._find_process_chain(process_tree, process_guid, find_parent = True))
 
         return process_tree
 
-    def BuildTree(self):
-        elastic_bool=self.GetDefaultElasticBool()
+    def build_tree(self):
+        elastic_bool=self.get_default_elastic_bool_expression()
         query = Q({'bool': {'must': elastic_bool}})
         
         process_tree = ProcessTree()
         
-        for hit in self._Search(query):
-            process_tree.AddProcessMap(hit.winlog.event_data.ParentProcessGuid, hit.winlog.event_data.ProcessGuid)
-            process_tree.AddProcessInfo(hit.winlog.event_data)
+        for hit in self._search(query):
+            process_tree.add_process_map(hit.winlog.event_data.ParentProcessGuid, hit.winlog.event_data.ProcessGuid)
+            process_tree.add_process_info(hit.winlog.event_data)
             
-        process_tree.FindRootPids()
+        process_tree.find_root_pids()
         return process_tree
 
 
@@ -248,5 +248,5 @@ if __name__=='__main__':
     end_datetime = datetime.datetime.strptime('2019-05-20 19:50:00.0', '%Y-%m-%d %H:%M:%S.%f')
     
     process = Process(hostname="NEWSTARTBASE", start_datetime=start_datetime, end_datetime=end_datetime, scan = True)
-    process_tree_list = process.BuildTree()
-    process_tree_list.Print()
+    process_tree_list = process.build_tree()
+    process_tree_list.print()
