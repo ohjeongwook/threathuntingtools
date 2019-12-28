@@ -105,6 +105,7 @@ class ScriptProcessor:
         i = 0
         for (script_block_id, powershell_script) in self.ScriptBlocks.items():
             print(' = '*80)
+            print('script_block_id: ' + str(script_block_id))
             print(powershell_script.get_message()[0:100])
             i += 1
             if i >= count:
@@ -137,11 +138,11 @@ class Commands:
         
     def cluster(self):
         self.StringMatcher.add_strings(self.Commands, "PowerShellCommand")
-        self.StringMatcher.analyze('PowerShellCommand', threshold = 0.7)
+        self.StringMatcher.analyze(0.7)
         self.StringMatcher.save_similarity_matrix(r"data\PowerShellCommands-SimilarityMatrix.npz")
         
         self.StringMatcher.get_matches(None)
-        self.StringMatcher.get_match_count()        
+        self.StringMatcher.get_match_count()
 
         self.StringMatcher.cluster()
         self.StringMatcher.save_clusters(r"data\PowerShellCommands-Clusters.pkl")        

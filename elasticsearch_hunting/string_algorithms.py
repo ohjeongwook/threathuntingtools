@@ -116,7 +116,7 @@ class StringMatcher:
         t1 = time.time()
         tf_idf_matrix = self.get_tfidf_matrix()
         self.SimilarityMatrix = self.perform_consine_similarity_analysis(tf_idf_matrix, tf_idf_matrix.transpose(), 10, threshold)
-        t = time.time()-t1
+        t = time.time() - t1
         print("Elapsed seconds:", t)
 
     def _get_matches(self, top = None):
