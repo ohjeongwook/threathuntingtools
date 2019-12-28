@@ -13,6 +13,20 @@ setuptools.setup(
     long_description_content_type = "text/markdown",
     url = "https://github.com/ohjeongwook/ElasticSearchHunting",
     packages = setuptools.find_packages(),
+    install_requires = [
+        'Cython',
+        'elasticsearch',
+        'elasticsearch-dsl',
+        'lark-parser',
+        'matplotlib',
+        'numpy',
+        'pandas',
+        'PyYAML',
+        'scikit-learn',
+        'scipy',
+        'sklearn',
+        'sparse-dot-topn'
+    ],
     classifiers = [
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
