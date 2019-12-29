@@ -15,7 +15,7 @@ except ImportError:
     from yaml import Loader, Dumper
 
 from windows_events import *
-from process import *
+import process
 import powershell
        
 class ProcessQuery:
@@ -25,7 +25,7 @@ class ProcessQuery:
         self.StartDateTime = start_datetime
         self.EndDateTime = end_datetime
         self.TelemetryServer = telemetry_server
-        self.Process = Process(telemetry_server = telemetry_server, start_datetime = self.StartDateTime, end_datetime = self.EndDateTime, scan = True)
+        self.Process = process.Processes(telemetry_server = telemetry_server, start_datetime = self.StartDateTime, end_datetime = self.EndDateTime, scan = True)
 
     def open_sqlite_database(self, filename):
         try:

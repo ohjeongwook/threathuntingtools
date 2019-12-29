@@ -91,7 +91,7 @@ class ProcessTree:
         for root_process_guid in self.RootProcessIdList:
             self._print(root_process_guid, level = 0)
 
-class Process:
+class Processes:
     def __init__(self, telemetry_server = 'localhost', hostname = None, start_datetime = None, end_datetime = None, scan = False):
         self.Hostname = hostname
         self.Scan = scan
@@ -228,26 +228,13 @@ class Process:
 
         return process_tree
 
-    def build_tree(self):
-        elastic_bool = self.get_default_elastic_bool_expression()
-        query = Q({'bool': {'must': elastic_bool}})
-        
+    def build_tree(self):        
         process_tree = ProcessTree()
-        
-        for hit in self._search(query):
+
+        elastic_bool = self.get_default_elastic_bool_expression()       
+        for hit in self._search(Q({'bool': {'must': elastic_bool}})):
             process_tree.add_process_map(hit.winlog.event_data.ParentProcessGuid, hit.winlog.event_data.ProcessGuid)
             process_tree.add_process_info(hit.winlog.event_data)
             
         process_tree.find_root_pids()
         return process_tree
-
-
-if __name__ == '__main__':
-    process = Process()
-
-    start_datetime = datetime.datetime.strptime('2019-05-20 19:40:00.0', '%Y-%m-%d %H:%M:%S.%f')
-    end_datetime = datetime.datetime.strptime('2019-05-20 19:50:00.0', '%Y-%m-%d %H:%M:%S.%f')
-    
-    process = Process(hostname = "NEWSTARTBASE", start_datetime = start_datetime, end_datetime = end_datetime, scan = True)
-    process_tree_list = process.build_tree()
-    process_tree_list.print()
