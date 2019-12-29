@@ -13,8 +13,8 @@ from elasticsearch_dsl import Search, Q
 from const import *
 
 class Events:
-    def __init__(self):
-        self.Client = Elasticsearch()    
+    def __init__(self, telemetry_server = 'localhost'):
+        self.Client = Elasticsearch(telemetry_server)
 
     def dump_event_counts(self):
         s = Search(using = self.Client, index = WINLOGBEAT_INDEX)
@@ -35,10 +35,10 @@ class Events:
             print(fmt_str.format(e.key, e.doc_count))        
 
 class Provider:    
-    def __init__(self, provider_name = '', hostname = '', start_datetime = None, end_datetime = None, scan = False, debug_query = False):
+    def __init__(self, telemetry_server = 'localhost', provider_name = '', hostname = '', start_datetime = None, end_datetime = None, scan = False, debug_query = False):
         self.DebugQuery = debug_query
         self.Scan = scan
-        self.Client = Elasticsearch()
+        self.Client = Elasticsearch(telemetry_server)
         self.Hostname = hostname
         self.ProviderName = provider_name
         
@@ -251,7 +251,7 @@ class File:
     def __init__(self, hostname = None, start_datetime = None, end_datetime = None, scan = False):
         self.Hostname = hostname
         self.Scan = scan
-        self.Provider = Provider(SYSMON_PROVIDER_NAME, start_datetime = start_datetime, end_datetime = end_datetime, scan = scan)
+        self.Provider = Provider(telemetry_server = 'telemetry_server', SYSMON_PROVIDER_NAME, start_datetime = start_datetime, end_datetime = end_datetime, scan = scan)
         
     def aggregate_by_image_target_filename(self):
         results = self.Provider.aggregate_by_event_data(event_id = 11, event_data_name = "Image", sub_event_data_name = "TargetFilename", bucket_size = 1000, sub_bucket_size = 100, threshold = 100)

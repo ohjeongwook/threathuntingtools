@@ -14,8 +14,8 @@ from string_algorithms import *
 from const import *
 
 class Telemetry:
-    def __init__(self, hostname = '', start_datetime = None, end_datetime = None, scan = False):
-        self.PowerShellProvider = Provider(MICROSOFT_WINDOWS_POWERSHELL_PROVIDER_NAME, hostname = hostname, start_datetime = start_datetime, end_datetime = end_datetime, scan = scan )
+    def __init__(self, telemetry_server = 'localhost', hostname = '', start_datetime = None, end_datetime = None, scan = False):
+        self.PowerShellProvider = Provider(telemetry_server = telemetry_server, MICROSOFT_WINDOWS_POWERSHELL_PROVIDER_NAME, hostname = hostname, start_datetime = start_datetime, end_datetime = end_datetime, scan = scan )
         self.ScriptBlocks = []
 
     def dump_summary(self):
@@ -84,9 +84,9 @@ class Script:
         return full_message
 
 class ScriptProcessor:
-    def __init__(self, start_datetime, end_datetime, scan = True):
+    def __init__(self, telemetry_server, start_datetime, end_datetime, scan = True):
         self.ScriptBlocks = {}
-        self.PowerShell = Telemetry(start_datetime = start_datetime, end_datetime = end_datetime, scan = scan)
+        self.PowerShell = Telemetry(telemetry_server = telemetry_server, start_datetime = start_datetime, end_datetime = end_datetime, scan = scan)
         self.PowerShell.get_script_blocks(self.construct_script_block)
 
     def construct_script_block(self, hit):

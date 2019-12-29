@@ -92,7 +92,7 @@ class ProcessTree:
             self._print(root_process_guid, level = 0)
 
 class Process:
-    def __init__(self, hostname = None, start_datetime = None, end_datetime = None, scan = False):
+    def __init__(self, telemetry_server = 'localhost', hostname = None, start_datetime = None, end_datetime = None, scan = False):
         self.Hostname = hostname
         self.Scan = scan
         
@@ -109,7 +109,7 @@ class Process:
         else:
             self.DTRange = None
 
-        self.Client = Elasticsearch()
+        self.Client = Elasticsearch(telemetry_server)
     
     def get_default_elastic_bool_expression(self, process_id = None, process_name = None):
         elastic_bool = []

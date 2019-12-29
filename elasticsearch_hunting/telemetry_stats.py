@@ -60,11 +60,12 @@ class ProviderInformation:
         return ''        
         
 class TelemetryStats:
-    def __init__(self, provider_name, start_datetime, end_datetime, interval, use_plotly = False):
+    def __init__(self, telemetry_server, provider_name, start_datetime, end_datetime, interval, use_plotly = False):
         self.ProviderName = provider_name
         self.StartDateTime = start_datetime
         self.EndDateTime = end_datetime
         self.Interval = interval
+        self.TelemetryServer = telemetry_server
         
         if not is_plotly_imported:
             self.UsePlotLy = False
@@ -76,7 +77,7 @@ class TelemetryStats:
        
         current_datetime = self.StartDateTime
         while current_datetime < self.EndDateTime:
-            provider = Provider(self.ProviderName, current_datetime, current_datetime+self.Interval)
+            provider = Provider(self.TelemetryServer, self.ProviderName, current_datetime, current_datetime+self.Interval)
             total_event_counts = provider.get_event_counts()
             event_counts = provider.get_event_counts(event_id = event_id)
 
@@ -96,7 +97,7 @@ class TelemetryStats:
        
         current_datetime = self.StartDateTime
         while current_datetime < self.EndDateTime:
-            provider = Provider(self.ProviderName, current_datetime, current_datetime+self.Interval)
+            provider = Provider(self.TelemetryServer, self.ProviderName, current_datetime, current_datetime+self.Interval)
             event_id_counts = {}
             for count in provider.get_event_id_counts():
                 event_id = int(count['key'])
@@ -163,7 +164,7 @@ class TelemetryStats:
         self.draw_stacked_graph(df)
 
     def group_events(self, event_id, data_name = 'Image', aggregate_by_hostname = False, top_n = 0):
-        provider = Provider(self.ProviderName, self.StartDateTime, self.EndDateTime)
+        provider = Provider(self.TelemetryServer, self.ProviderName, self.StartDateTime, self.EndDateTime)
         result = provider.aggregate_by_event_data(event_id = event_id, event_data_name =data_name, aggregate_by_hostname = aggregate_by_hostname)
 
         if aggregate_by_hostname:

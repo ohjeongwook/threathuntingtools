@@ -12,8 +12,8 @@ from elasticsearch_dsl import Q
 from const import *
 
 class QueryUtil:
-    def __init__(self):
-        self.Client = Elasticsearch()
+    def __init__(self, telemetry_server = 'localhost'):
+        self.Client = Elasticsearch(telemetry_server)
 
     def query_event_ids(self):
         elastic_bool = []

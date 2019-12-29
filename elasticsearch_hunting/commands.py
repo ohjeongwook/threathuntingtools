@@ -19,12 +19,13 @@ from process import *
 import powershell
        
 class ProcessQuery:
-    def __init__(self, hostname, start_datetime, end_datetime):
+    def __init__(self, telemetry_server, hostname, start_datetime, end_datetime):
         self.SqliteConn = None
         self.TableName = "process_create"
         self.StartDateTime = start_datetime
         self.EndDateTime = end_datetime
-        self.Process = Process(start_datetime = self.StartDateTime, end_datetime = self.EndDateTime, scan = True)
+        self.TelemetryServer = telemetry_server
+        self.Process = Process(telemetry_server = telemetry_server, start_datetime = self.StartDateTime, end_datetime = self.EndDateTime, scan = True)
 
     def open_sqlite_database(self, filename):
         try:
@@ -85,7 +86,7 @@ class ProcessQuery:
         end_datetime = event_datetime + timedelta(seconds = 60)
         
         if options['enumerate_events']:
-            provider = Provider(hostname = winlog.computer_name, start_datetime = start_datetime, end_datetime = end_datetime, scan = True )
+            provider = Provider(telemetry_server = self.TelemetryServer, hostname = winlog.computer_name, start_datetime = start_datetime, end_datetime = end_datetime, scan = True )
             hits = provider.query_events(process_id = winlog.event_data.ProcessId)
             
             if options['full_dump']:
@@ -225,6 +226,8 @@ if __name__ == '__main__':
     usage = 'commands.py [-o <output sqlite db filename>] <target file/folder name>'
     parser = argparse.ArgumentParser(usage = usage)
     parser.add_argument("-F", action = "store_true", default = False, dest = "full_dump")
+       
+    parser.add_argument("-S", "--telemetry_server", dest = "telemetry_server", help = "Telemetry server", default = 'localhost', metavar = "TELEMETRY_SERVER")
     parser.add_argument("-H", "--hostname", dest = "hostname", help = "Hostname to search", default = '', metavar = "HOSTNAME")
     parser.add_argument("-p", "--process_name", dest = "process_name", help = "Process name pattern to search", default = '', metavar = "PROCESS_NAME")
     parser.add_argument("-i", "--process_id", metavar = "NUMBER", dest = "process_id", default = None, type = int, help = "Process ID")
@@ -235,20 +238,14 @@ if __name__ == '__main__':
     parser.add_argument("-E", action = "store_true", default = False, dest = "enumerate_events")
     parser.add_argument("-T", action = "store_true", default = False, dest = "enumerate_tree")
     
-    parser.add_argument("-v", "--verbose_level", metavar = "NUMBER", dest = "verbose_level", default = 0, type = int, help = "Verbose level")
-    parser.add_argument("-s", 
-                    "--start_datetime", 
-                    help = "The Start Date - format YYYY-MM-DD [HH[:MM[:SS[.ms]]]]", 
-                    required = False, 
-                    default = datetime.datetime.strptime('2019-05-01 19:40:00.0', '%Y-%m-%d %H:%M:%S.%f'), 
+    parser.add_argument("-v", "--verbose_level", metavar = "NUMBER", dest = "verbose_level", default = 0, type = int,
+                    help = "Verbose level")
+    parser.add_argument("-s", "--start_datetime", help = "The Start Date - format YYYY-MM-DD [HH[:MM[:SS[.ms]]]]", 
+                    required = False, default = datetime.datetime.strptime('2019-05-01 19:40:00.0', '%Y-%m-%d %H:%M:%S.%f'), 
                     type = convert_datetime_format_string)
                     
-    parser.add_argument("-e", 
-                    "--end_datetime", 
-                    help = "The Start Date - format YYYY-MM-DD [HH[:MM[:SS[.ms]]]]", 
-                    required = False, 
-                    default = datetime.datetime.now(), 
-                    type = convert_datetime_format_string)
+    parser.add_argument("-e", "--end_datetime", help = "The Start Date - format YYYY-MM-DD [HH[:MM[:SS[.ms]]]]", 
+                    required = False, default = datetime.datetime.now(), type = convert_datetime_format_string)
 
     args = parser.parse_args()
 
@@ -258,7 +255,7 @@ if __name__ == '__main__':
     print('\tEnd DateTime: ' + str(args.end_datetime))
     pprint.pprint(vars(args))
 
-    process_query = ProcessQuery(args.hostname, args.start_datetime, args.end_datetime)
+    process_query = ProcessQuery(args.telemetry_server, args.hostname, args.start_datetime, args.end_datetime)
     
     options = vars(args)
 
