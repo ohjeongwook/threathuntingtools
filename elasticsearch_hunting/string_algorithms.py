@@ -17,15 +17,11 @@ from scipy.sparse import csr_matrix, save_npz, load_npz
 import sparse_dot_topn.sparse_dot_topn as ct
 import yaml
 
-import file_util
-
 class StringMatcher:
     def __init__(self):
         self.Clusters = {}
 
-    def load_data(self, filename, data_type = 'String', data_format = 'csv', table_name = 'Default', column_name = 'Default', lower_case = False):
-        filename = file_util.locate_file(filename)
-        
+    def load_data(self, filename, data_type = 'String', data_format = 'csv', table_name = 'Default', column_name = 'Default', lower_case = False):       
         pd.set_option('display.max_colwidth', -1)
         if data_format == 'yml':
             with open(filename, 'r', encoding = 'utf8') as fd:
