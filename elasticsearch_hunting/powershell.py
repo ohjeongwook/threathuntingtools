@@ -15,7 +15,7 @@ from const import *
 
 class Telemetry:
     def __init__(self, telemetry_server = 'localhost', hostname = '', start_datetime = None, end_datetime = None, scan = False):
-        self.PowerShellProvider = Provider(telemetry_server = telemetry_server, MICROSOFT_WINDOWS_POWERSHELL_PROVIDER_NAME, hostname = hostname, start_datetime = start_datetime, end_datetime = end_datetime, scan = scan )
+        self.PowerShellProvider = Provider(telemetry_server, MICROSOFT_WINDOWS_POWERSHELL_PROVIDER_NAME, hostname = hostname, start_datetime = start_datetime, end_datetime = end_datetime, scan = scan )
         self.ScriptBlocks = []
 
     def dump_summary(self):

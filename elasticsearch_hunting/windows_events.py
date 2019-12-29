@@ -248,10 +248,10 @@ class Provider:
             print("Code: %d Action: %s" % (code, action))
 
 class File:
-    def __init__(self, hostname = None, start_datetime = None, end_datetime = None, scan = False):
+    def __init__(self, telemetry_server = 'localhost', hostname = None, start_datetime = None, end_datetime = None, scan = False):
         self.Hostname = hostname
         self.Scan = scan
-        self.Provider = Provider(telemetry_server = 'telemetry_server', SYSMON_PROVIDER_NAME, start_datetime = start_datetime, end_datetime = end_datetime, scan = scan)
+        self.Provider = Provider(telemetry_server, SYSMON_PROVIDER_NAME, start_datetime = start_datetime, end_datetime = end_datetime, scan = scan)
         
     def aggregate_by_image_target_filename(self):
         results = self.Provider.aggregate_by_event_data(event_id = 11, event_data_name = "Image", sub_event_data_name = "TargetFilename", bucket_size = 1000, sub_bucket_size = 100, threshold = 100)
