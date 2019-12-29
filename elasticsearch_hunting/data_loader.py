@@ -43,20 +43,20 @@ class CommandLineData:
 
             feature = {}
             command = entry['Command']
-            feature['Exe Count'] = self.count_pattern(command, '.exe')-self.count_pattern(command, 'powershell.exe')
+            feature['Exe Count'] = self.count_pattern(command, '.exe') - self.count_pattern(command, 'powershell.exe')
             feature['Single Quote Count'] = self.count_pattern(command, '\'')
             feature['Pipe Count'] = self.count_pattern(command, '|')
             feature['Plus Count'] = self.count_pattern(command, '+')
             feature['Carret Count'] = self.count_pattern(command, '^')
             feature['Reference Count'] = len(re.findall('{[0-9]+}', command))
             feature['Block Count'] = len(re.findall(r'\[[^\[\]]+\]', command))
-            feature['Entropy'] = Util.entry(command)
+            feature['Entropy'] = Util.entropy(command)
             feature['Weight'] = entry['Weight']
             feature['Detection'] = detection
 
             m = re.search(r'([a-zA-Z%][^\\\\//\';]*)\.(exe|ps1|bat|cmd)', command, re.I)
             if m:
-                feature['Command Entropy'] = Util.entry(m.group(1))
+                feature['Command Entropy'] = Util.entropy(m.group(1))
             else:
                 feature['Command Entropy'] = 0
 

@@ -8,7 +8,7 @@ from collections import Counter
 
 class Util:
     @staticmethod
-    def entry(s):
+    def entropy(s):
         l = float(len(s))
         return -sum(map(lambda a: (a/l)*math.log2(a/l), Counter(s).values()))
 
