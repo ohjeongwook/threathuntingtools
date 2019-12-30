@@ -3,9 +3,9 @@
 # pylint: disable=unused-wildcard-import, import-error
 
 import sys
-sys.path.append(r'..\threathunting')
+sys.path.append(r'..')
 import datetime
-import process
+import threathunting.process
 
 if __name__ == '__main__':
     start_datetime = datetime.datetime.strptime('2019-05-20 19:40:00.0', '%Y-%m-%d %H:%M:%S.%f')

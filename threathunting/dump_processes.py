@@ -14,9 +14,9 @@ try:
 except ImportError:
     from yaml import Loader, Dumper
 
-from theathunting.windows_events import *
-import theathunting.process
-import theathunting.powershell
+from threathunting.windows_events import *
+import threathunting.process
+import threathunting.powershell
        
 class ProcessQuery:
     def __init__(self, telemetry_server, hostname, start_datetime, end_datetime):

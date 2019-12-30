@@ -1,1 +1,4 @@
 *.pyc
+build/
+dist/
+threat_hunting_tools_ohjeongwook.egg-info/

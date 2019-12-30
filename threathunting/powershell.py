@@ -8,10 +8,10 @@ import yaml
 import pprint
 import traceback
 
-from theathunting.windows_events import *
-from theathunting.command_line_parser import *
-from theathunting.string_algorithms import *
-from theathunting.const import *
+from threathunting.windows_events import *
+from threathunting.command_line_parser import *
+from threathunting.string_algorithms import *
+from threathunting.const import *
 
 class Telemetry:
     def __init__(self, telemetry_server = 'localhost', hostname = '', start_datetime = None, end_datetime = None, scan = False):

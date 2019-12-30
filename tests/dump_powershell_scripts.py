@@ -3,9 +3,8 @@
 # pylint: disable=unused-wildcard-import, import-error
 
 import sys
-sys.path.append(r'..\threathunting')
 import datetime
-import powershell
+import threathunting.powershell
 
 start_datetime = datetime.datetime.strptime('2019-05-01 19:40:00.0', '%Y-%m-%d %H:%M:%S.%f')
 end_datetime = datetime.datetime.strptime('2019-07-29 19:50:00.0', '%Y-%m-%d %H:%M:%S.%f')
