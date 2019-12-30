@@ -6,5 +6,5 @@ This projects is an abstraction layer over elasticsearch library to implement wi
 ### Installation
 
 ```
-pip install --upgrade git+https://github.com/ohjeongwook/ElasticSearchHunting
+pip3 install --upgrade git+https://github.com/ohjeongwook/ThreatHuntingTools
 ```
