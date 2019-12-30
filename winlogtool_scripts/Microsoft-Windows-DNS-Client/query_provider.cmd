@@ -1,2 +1,2 @@
-python.exe ..\query_provider.py Microsoft-Windows-DNS-Client > query_provider.txt
+python ..\query_provider.py Microsoft-Windows-DNS-Client > query_provider.txt
 pause
