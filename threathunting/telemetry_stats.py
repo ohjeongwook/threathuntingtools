@@ -2,7 +2,6 @@
 # coding: utf-8
 # pylint: disable=unused-wildcard-import
 
-from windows_events import *
 from datetime import *
 import pandas as pd
 import pprint
@@ -23,6 +22,8 @@ try:
     import seaborn as sns
 except ImportError:
     pass
+
+from threathunting.windows_events import *
 
 class ProviderInformation:
     EVENT_NAME_MAP = {
