@@ -1,7 +1,7 @@
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 
-client = Elasticsearch()
+client = Elasticsearch(timeout = 60)
 s = Search(using=client, index="winlogbeat-*")
 s.source(includes=['winlog.provider_name', 'winlog.event_id'])
 

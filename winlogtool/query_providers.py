@@ -2,7 +2,7 @@ import pprint
 from datetime import datetime
 from elasticsearch import Elasticsearch
 
-es = Elasticsearch()
+es = Elasticsearch(timeout = 60)
 
 body = {
   "query": {

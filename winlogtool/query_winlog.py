@@ -7,7 +7,7 @@ from elasticsearch_dsl import Search, Q
 
 provider_name = sys.argv[1]
 
-client = Elasticsearch()
+client = Elasticsearch(timeout = 60)
 
 elastic_bool = []
 elastic_bool.append({'match': {'winlog.provider_name': provider_name}})

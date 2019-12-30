@@ -12,7 +12,7 @@ args = parser.parse_args()
 
 winlog_event_data_name = 'winlog.event_data.' + args.event_data
 
-client = Elasticsearch()
+client = Elasticsearch(timeout = 60)
 
 elastic_bool = []
 elastic_bool.append({'match': {'winlog.provider_name': args.provider_name}})
