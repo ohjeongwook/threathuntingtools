@@ -3,7 +3,7 @@
 # pylint: disable=unused-wildcard-import, import-error
 
 import sys
-sys.path.append(r'..\elasticsearch_hunting')
+sys.path.append(r'..\threathunting')
 import datetime
 import process
 
