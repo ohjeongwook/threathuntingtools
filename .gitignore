@@ -2,3 +2,9 @@
 build/
 dist/
 threat_hunting_tools_ohjeongwook.egg-info/
+winlogtool_scripts/Microsoft-Windows-DNS-Client/query_distinct_event_ids.txt
+winlogtool_scripts/Microsoft-Windows-DNS-Client/query_event_3009_freq.txt
+winlogtool_scripts/Microsoft-Windows-DNS-Client/query_winlog.txt
+winlogtool_scripts/Microsoft-Windows-SystemDataArchiver/query_distinct_event_ids.txt
+winlogtool_scripts/Microsoft-Windows-SystemDataArchiver/query_provider-logstring.txt
+winlogtool_scripts/Providers/query_distinct_provider_names.txt
