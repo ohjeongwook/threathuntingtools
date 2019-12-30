@@ -3,7 +3,6 @@
 # pylint: disable=unused-wildcard-import
 
 import traceback
-
 import yaml
 
 class Util:

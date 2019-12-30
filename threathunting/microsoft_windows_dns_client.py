@@ -9,7 +9,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from elasticsearch_dsl import Q
 
-from const import *
+from theathunting.const import *
 
 class QueryUtil:
     def __init__(self, telemetry_server = 'localhost'):

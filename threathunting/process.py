@@ -10,7 +10,7 @@ import copy
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
 
-from const import *
+from theathunting.const import *
 
 class ProcessTree:
     def __init__(self):
