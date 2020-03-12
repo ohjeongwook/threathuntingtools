@@ -152,13 +152,13 @@ class Provider:
 
         return self.search(Q({'bool': {'must': elastic_bool}}))
 
-    def dump_events(self, event_id = None, print_event_meta_data = False, call_back = None):
+    def dump_events(self, event_id = None, print_event_meta_data = False, call_back = None, count = 100):
         elastic_bool = self.get_default_query()
        
         if event_id != None:
             elastic_bool.append({'match': {'winlog.event_id': event_id}})
 
-        for hit in self.search(Q({'bool': {'must': elastic_bool}})):
+        for hit in self.search(Q({'bool': {'must': elastic_bool}}))[0:count]:
             if call_back != None:
                 call_back(hit)
             else:
