@@ -228,9 +228,9 @@ class Provider:
                     print("    {0:76} {1}".format(bucket.key, bucket.doc_count))
 
     def dump_summary(self, print_event_meta_data = False):
-        print("{0:50} {1}".format("Event ID", "Count"))
+        print("{0:20} {1}".format("Event ID", "Count"))
         for e in self.get_event_id_counts():
-            print("{0:50} {1}".format(e.key, e.doc_count))
+            print("{0:20} {1}".format(e.key, e.doc_count))
         
     def dump_event_summary(self):
         elastic_bool = self.get_default_query()
