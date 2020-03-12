@@ -12,8 +12,8 @@ from elasticsearch_dsl import Q
 from threathunting.const import *
 
 class QueryUtil:
-    def __init__(self, telemetry_server = 'localhost'):
-        self.Client = Elasticsearch(telemetry_server)
+    def __init__(self, telemetry_server = 'localhost', timeout = 60):
+        self.Client = Elasticsearch(telemetry_server, timeout = timeout)
 
     def query_event_ids(self):
         elastic_bool = []
