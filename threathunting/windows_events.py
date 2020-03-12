@@ -231,8 +231,6 @@ class Provider:
         print("{0:50} {1}".format("Event ID", "Count"))
         for e in self.get_event_id_counts():
             print("{0:50} {1}".format(e.key, e.doc_count))
-
-        self.dump_events(print_event_meta_data = print_event_meta_data)
         
     def dump_event_summary(self):
         elastic_bool = self.get_default_query()
