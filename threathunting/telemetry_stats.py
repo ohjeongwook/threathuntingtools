@@ -114,10 +114,7 @@ class TelemetryStats:
             event_id_counts_list.append(event_id_counts)
             start_datetime = end_datetime
             
-        df = pd.DataFrame(event_id_counts_list) 
-
-        print(df)
-        return df
+	return pd.DataFrame(event_id_counts_list) 
     
     def plot_event_counts(self, event_id = None, y = 'Count'):
         df = self.get_event_counts(event_id)
