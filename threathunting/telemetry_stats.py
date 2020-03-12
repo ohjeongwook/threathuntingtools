@@ -76,19 +76,20 @@ class TelemetryStats:
     def get_event_counts(self, event_id = None):
         event_id_counts = []
        
-        current_datetime = self.StartDateTime
-        while current_datetime < self.EndDateTime:
-            provider = Provider(self.TelemetryServer, self.ProviderName, current_datetime, current_datetime+self.Interval)
+        start_datetime = self.StartDateTime
+        while start_datetime < self.EndDateTime:
+            end_datetime = start_datetime + self.Interval
+            provider = Provider(self.TelemetryServer, self.ProviderName, start_datetime = start_datetime, end_datetime = end_datetime)
             total_event_counts = provider.get_event_counts()
             event_counts = provider.get_event_counts(event_id = event_id)
 
             if total_event_counts == 0:
                 percentage = 0
             else:
-                percentage = event_counts/total_event_counts
+                percentage = event_counts / total_event_counts
 
-            event_id_counts.append([current_datetime, event_counts, percentage])
-            current_datetime += self.Interval
+            event_id_counts.append([start_datetime, event_counts, percentage])
+            start_datetime = end_datetime
             
         df = pd.DataFrame(event_id_counts, columns =['StartDate', 'Count', 'Percentage']) 
         return df
@@ -117,7 +118,7 @@ class TelemetryStats:
     
     def plot_event_counts(self, event_id = None, y = 'Count'):
         df = self.get_event_counts(event_id)
-        
+
         if self.UsePlotLy:
             data = [go.Bar(x = df.StartDate, 
                         y = df.Count)]
