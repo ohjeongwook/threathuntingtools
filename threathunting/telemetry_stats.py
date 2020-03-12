@@ -99,7 +99,7 @@ class TelemetryStats:
        
         start_datetime = self.StartDateTime
         while start_datetime < self.EndDateTime:
-            end_datetime = current_datetime + self.Interval
+            end_datetime = start_datetime + self.Interval
             provider = Provider(self.TelemetryServer, self.ProviderName, start_datetime = start_datetime, end_datetime = end_datetime)
             event_id_counts = {}
             for count in provider.get_event_id_counts():
