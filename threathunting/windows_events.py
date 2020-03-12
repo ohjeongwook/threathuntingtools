@@ -4,7 +4,6 @@
 
 import sys
 import pprint
-import datetime
 import copy
 
 from elasticsearch import Elasticsearch

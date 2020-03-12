@@ -4,8 +4,7 @@
 
 import pprint
 import traceback
-import datetime
-from datetime import timedelta
+from datetime import *
 import sqlite3
 
 from yaml import load, dump
@@ -81,7 +80,7 @@ class ProcessQuery:
             process_tree = self.Process.get_process_tree(winlog.event_data.ProcessGuid)
             process_tree.print()
         
-        event_datetime = datetime.datetime.strptime(winlog.event_data.UtcTime, '%Y-%m-%d %H:%M:%S.%f')
+        event_datetime = datetime.strptime(winlog.event_data.UtcTime, '%Y-%m-%d %H:%M:%S.%f')
         start_datetime = event_datetime - timedelta(seconds = 60)
         end_datetime = event_datetime + timedelta(seconds = 60)
         
@@ -216,7 +215,7 @@ if __name__ == '__main__':
         
         for datetime_format in datetime_formats:
             try:
-                return datetime.datetime.strptime(s, datetime_format)
+                return datetime.strptime(s, datetime_format)
             except ValueError:
                 continue
 
@@ -241,11 +240,11 @@ if __name__ == '__main__':
     parser.add_argument("-v", "--verbose_level", metavar = "NUMBER", dest = "verbose_level", default = 0, type = int,
                     help = "Verbose level")
     parser.add_argument("-s", "--start_datetime", help = "The Start Date - format YYYY-MM-DD [HH[:MM[:SS[.ms]]]]", 
-                    required = False, default = datetime.datetime.strptime('2019-05-01 19:40:00.0', '%Y-%m-%d %H:%M:%S.%f'), 
+                    required = False, default = datetime.strptime('2019-05-01 19:40:00.0', '%Y-%m-%d %H:%M:%S.%f'), 
                     type = convert_datetime_format_string)
                     
     parser.add_argument("-e", "--end_datetime", help = "The Start Date - format YYYY-MM-DD [HH[:MM[:SS[.ms]]]]", 
-                    required = False, default = datetime.datetime.now(), type = convert_datetime_format_string)
+                    required = False, default = datetime.now(), type = convert_datetime_format_string)
 
     args = parser.parse_args()
 

@@ -1,5 +1,5 @@
 import pprint
-from datetime import datetime
+from datetime import *
 from elasticsearch import Elasticsearch
 
 es = Elasticsearch(timeout = 60)
