@@ -97,9 +97,10 @@ class TelemetryStats:
     def get_event_counts_list(self):
         event_id_counts_list = []
        
-        current_datetime = self.StartDateTime
-        while current_datetime < self.EndDateTime:
-            provider = Provider(self.TelemetryServer, self.ProviderName, current_datetime, current_datetime+self.Interval)
+        start_datetime = self.StartDateTime
+        while start_datetime < self.EndDateTime:
+            end_datetime = start_datetime + self.Interval
+            provider = Provider(self.TelemetryServer, self.ProviderName, start_datetime = start_datetime, end_datetime = end_datetime)
             event_id_counts = {}
             for count in provider.get_event_id_counts():
                 event_id = int(count['key'])
@@ -109,12 +110,11 @@ class TelemetryStats:
                     event_name = 'Event ID ' + count['key']
                 event_id_counts[event_name] = count['doc_count']
                 
-            event_id_counts['StartDate'] = current_datetime
+            event_id_counts['StartDate'] = start_datetime
             event_id_counts_list.append(event_id_counts)
-            current_datetime += self.Interval
+            start_datetime = end_datetime
             
-        df = pd.DataFrame(event_id_counts_list) 
-        return df
+        return pd.DataFrame(event_id_counts_list) 
     
     def plot_event_counts(self, event_id = None, y = 'Count'):
         df = self.get_event_counts(event_id)
@@ -166,7 +166,7 @@ class TelemetryStats:
         self.draw_stacked_graph(df)
 
     def group_events(self, event_id, data_name = 'Image', aggregate_by_hostname = False, top_n = 0):
-        provider = Provider(self.TelemetryServer, self.ProviderName, self.StartDateTime, self.EndDateTime)
+        provider = Provider(self.TelemetryServer, self.ProviderName, start_datetime = self.StartDateTime, end_datetime = self.EndDateTime)
         result = provider.aggregate_by_event_data(event_id = event_id, event_data_name =data_name, aggregate_by_hostname = aggregate_by_hostname)
 
         if aggregate_by_hostname:
