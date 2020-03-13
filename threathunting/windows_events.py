@@ -63,6 +63,9 @@ class Provider:
         return elastic_bool
         
     def search(self, query, get_count = False, includes = None, size = 1000):
+        if self.DebugQuery:
+            pprint.pprint(query)
+
         s = Search(using = self.Client, index = WINLOGBEAT_INDEX).query(query)
         if self.DTRange != None:
             s = s.filter('range', **self.DTRange)
@@ -254,10 +257,10 @@ class Provider:
             print("Code: %d Action: %s" % (code, action))
 
 class File:
-    def __init__(self, telemetry_server = 'localhost', hostname = None, start_datetime = None, end_datetime = None, scan = False):
+    def __init__(self, telemetry_server = 'localhost', hostname = None, start_datetime = None, end_datetime = None, scan = False, debug_query = False):
         self.Hostname = hostname
         self.Scan = scan
-        self.Provider = Provider(telemetry_server, SYSMON_PROVIDER_NAME, start_datetime = start_datetime, end_datetime = end_datetime, scan = scan)
+        self.Provider = Provider(telemetry_server, SYSMON_PROVIDER_NAME, start_datetime = start_datetime, end_datetime = end_datetime, debug_query = debug_query, scan = scan)
         
     def aggregate_by_image_target_filename(self):
         results = self.Provider.aggregate_by_event_data(event_id = 11, event_data_name = "Image", sub_event_data_name = "TargetFilename", bucket_size = 1000, sub_bucket_size = 100, threshold = 100)
@@ -278,4 +281,3 @@ class File:
         for hit in self.Provider.query_events(event_id = 11, event_data_name = 'Image', event_data_value = image, size = size):
             filenames.append(hit.winlog.event_data.TargetFilename)
         return filenames
-
