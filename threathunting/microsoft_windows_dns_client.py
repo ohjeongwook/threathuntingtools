@@ -16,9 +16,9 @@ class QueryUtil:
         self.Client = Elasticsearch(telemetry_server, timeout = timeout)
 
     def query_event_ids(self):
-        elastic_bool = []
-        elastic_bool.append({'match': {'winlog.provider_name': MICROSOFT_WINDOWS_DNSCLIENT_PROVIDER_NAME}})
-        query = Q({'bool': {'must': elastic_bool}})
+        es_query = []
+        es_query.append({'match': {'winlog.provider_name': MICROSOFT_WINDOWS_DNSCLIENT_PROVIDER_NAME}})
+        query = Q({'bool': {'must': es_query}})
         s = Search(using = self.Client, index = "winlogbeat-*").query(query)
         s.source(includes = ['winlog.provider_name', 'winlog.event_id'])
 
@@ -42,9 +42,9 @@ class QueryUtil:
             traceback.print_exc()
 
     def query_distinct_event_ids(self):
-        elastic_bool = []
-        elastic_bool.append({'match': {'winlog.provider_name': MICROSOFT_WINDOWS_DNSCLIENT_PROVIDER_NAME}})
-        query = Q({'bool': {'must': elastic_bool}})
+        es_query = []
+        es_query.append({'match': {'winlog.provider_name': MICROSOFT_WINDOWS_DNSCLIENT_PROVIDER_NAME}})
+        query = Q({'bool': {'must': es_query}})
         s = Search(using = self.Client, index = "winlogbeat-*").query(query)
         s.source(includes = ['winlog.event_id', 'winlog.event_data.LogString'])
         s.aggs.bucket('distinct_event_ids', 'terms', field = 'winlog.event_id', size = 1000)
@@ -57,9 +57,9 @@ class QueryUtil:
     def query_query_names(self, size = 6000, descending = True):
         winlog_event_data_name = "winlog.event_data.QueryName"
 
-        elastic_bool = []
-        elastic_bool.append({'match': {'winlog.provider_name': MICROSOFT_WINDOWS_DNSCLIENT_PROVIDER_NAME}})
-        query = Q({'bool': {'must': elastic_bool}})
+        es_query = []
+        es_query.append({'match': {'winlog.provider_name': MICROSOFT_WINDOWS_DNSCLIENT_PROVIDER_NAME}})
+        query = Q({'bool': {'must': es_query}})
 
         s = Search(using = self.Client, index = "winlogbeat-*").query(query)
         s.source(includes = [winlog_event_data_name])\

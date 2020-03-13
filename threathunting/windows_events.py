@@ -55,12 +55,12 @@ class Provider:
             self.DTRange = None
             
     def get_default_query(self):
-        elastic_bool = []
+        es_query = []
         
         if self.ProviderName:
-            elastic_bool.append({'match': {'winlog.provider_name': self.ProviderName}})
+            es_query.append({'match': {'winlog.provider_name': self.ProviderName}})
         
-        return elastic_bool
+        return es_query
         
     def search(self, query, get_count = False, includes = None, size = 1000):
         if self.DebugQuery:
@@ -90,25 +90,25 @@ class Provider:
         return self.search(query, get_count = True)
 
     def get_event_counts(self, event_id = None):
-        elastic_bool = self.get_default_query()
+        es_query = self.get_default_query()
            
         if event_id != None:
-            elastic_bool.append({'match': {'winlog.event_id': event_id}})
+            es_query.append({'match': {'winlog.event_id': event_id}})
 
-        return self.get_count(Q({'bool': {'must': elastic_bool}}))
+        return self.get_count(Q({'bool': {'must': es_query}}))
     
     def get_grouped_event_counts(self, event_id = None):
-        elastic_bool = self.get_default_query()
+        es_query = self.get_default_query()
            
         if event_id != None:
-            elastic_bool.append({'match': {'winlog.event_id': event_id}})
+            es_query.append({'match': {'winlog.event_id': event_id}})
 
-        return self.get_count(Q({'bool': {'must': elastic_bool}}))
+        return self.get_count(Q({'bool': {'must': es_query}}))
 
     def get_event_id_counts(self):
-        elastic_bool = self.get_default_query()
+        es_query = self.get_default_query()
 
-        query = Q({'bool': {'must': elastic_bool}})
+        query = Q({'bool': {'must': es_query}})
         s = Search(using = self.Client, index = WINLOGBEAT_INDEX).query(query)
         if self.DTRange != None:
             s = s.filter('range', **self.DTRange)
@@ -124,17 +124,17 @@ class Provider:
             print("{0:50} {1}".format(e.key, e.doc_count))
 
     def query_events(self, event_id = None, event_data_name = None, event_data_value = None, process_id = None, process_guid = None, size = 1000):
-        elastic_bool = self.get_default_query()
+        es_query = self.get_default_query()
        
         if self.Hostname != None:
-            elastic_bool.append({'match': {'host.hostname': self.Hostname}})
+            es_query.append({'match': {'host.hostname': self.Hostname}})
 
         if event_id != None:
-            elastic_bool.append({'match': {'winlog.event_id': event_id}})
+            es_query.append({'match': {'winlog.event_id': event_id}})
 
         if event_data_name:
             field_name = 'winlog.event_data.' + event_data_name
-            elastic_bool.append({'match': {field_name: event_data_value}})
+            es_query.append({'match': {field_name: event_data_value}})
             
         if process_id != None:
             # winlog.process.pid/winlog.event_data.ProcessId
@@ -147,20 +147,20 @@ class Provider:
                 }
             }
             
-            elastic_bool.append(pid_match_query)
+            es_query.append(pid_match_query)
 
         if process_guid != None:
-            elastic_bool.append({'match': {'winlog.event_data.ProcessGuid': event_data_value}})
+            es_query.append({'match': {'winlog.event_data.ProcessGuid': event_data_value}})
 
-        return self.search(Q({'bool': {'must': elastic_bool}}))
+        return self.search(Q({'bool': {'must': es_query}}))
 
     def dump_events(self, event_id = None, print_event_meta_data = False, call_back = None, count = 100):
-        elastic_bool = self.get_default_query()
+        es_query = self.get_default_query()
        
         if event_id != None:
-            elastic_bool.append({'match': {'winlog.event_id': event_id}})
+            es_query.append({'match': {'winlog.event_id': event_id}})
 
-        for hit in self.search(Q({'bool': {'must': elastic_bool}}))[0:count]:
+        for hit in self.search(Q({'bool': {'must': es_query}}))[0:count]:
             if call_back != None:
                 call_back(hit)
             else:
@@ -174,16 +174,16 @@ class Provider:
                         pprint.pprint(hit.to_dict())
 
     def aggregate_by_event_data(self, event_id = None, event_data_name = "Image", sub_event_data_name = None, bucket_size = 1000, sub_bucket_size = 100, threshold = None, filter_event_data_name = '', filter_event_data_value = '', aggregate_by_hostname = False):
-        elastic_bool = self.get_default_query()
+        es_query = self.get_default_query()
        
         if event_id != None:
-            elastic_bool.append({'match': {'winlog.event_id': event_id}})
+            es_query.append({'match': {'winlog.event_id': event_id}})
             
         if filter_event_data_name:
             filter_field_name = 'winlog.event_data.' + filter_event_data_name
-            elastic_bool.append({'match': {filter_field_name: filter_event_data_value}})
+            es_query.append({'match': {filter_field_name: filter_event_data_value}})
 
-        query = Q({'bool': {'must': elastic_bool}})
+        query = Q({'bool': {'must': es_query}})
 
         s = Search(using = self.Client, index = "winlogbeat-*").query(query)        
         if self.DTRange != None:
@@ -244,10 +244,10 @@ class Provider:
             print("{0:20} {1}".format(e.key, e.doc_count))
         
     def dump_event_summary(self):
-        elastic_bool = self.get_default_query()
+        es_query = self.get_default_query()
 
         code2action = {}
-        for hit in self.search(Q({'bool': {'must': elastic_bool}})):
+        for hit in self.search(Q({'bool': {'must': es_query}})):
             try:
                 code2action[hit.event.code] = hit.event.action
             except:
