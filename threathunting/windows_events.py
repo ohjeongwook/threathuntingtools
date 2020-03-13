@@ -34,7 +34,7 @@ class Events:
             print(fmt_str.format(e.key, e.doc_count))        
 
 class Provider:    
-    def __init__(self, telemetry_server = 'localhost', provider_name = '', hostname = '', start_datetime = None, end_datetime = None, scan = False, debug_query = False, timeout = 60):
+    def __init__(self, telemetry_server = 'localhost', provider_name = '', hostname = None, start_datetime = None, end_datetime = None, scan = False, debug_query = False, timeout = 60):
         self.DebugQuery = debug_query
         self.Scan = scan
         self.Client = Elasticsearch(telemetry_server, timeout = timeout)
