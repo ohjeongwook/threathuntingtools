@@ -216,18 +216,23 @@ class Provider:
         
         return response.aggregations[event_data_name]
     
-    def dump_by_event_data(self, event_id = None, event_data_name = "Image", sub_event_data_name = None, bucket_size = 1000, sub_bucket_size = 100, threshold = 100, count = 0):
+    def dump_by_event_data(self, event_id = None, event_data_name = "Image", sub_event_data_name = None, bucket_size = 1000, sub_bucket_size = 100, threshold = 100, count = 0, sub_event_count = 0):
         print("{0:80} {1}".format(event_data_name, "Count"))
 
         events = self.aggregate_by_event_data(event_id = event_id, event_data_name = event_data_name, sub_event_data_name = sub_event_data_name, bucket_size = bucket_size, sub_bucket_size = sub_bucket_size, threshold = threshold)
 
         if count > 0:
             events = events[0:count]
+
         for e in events:
             print("{0:80} {1}".format(e.key, e.doc_count))
             
             if sub_event_data_name and sub_event_data_name in e:
-                for bucket in e[sub_event_data_name]['buckets']:
+                sub_events = e[sub_event_data_name]['buckets']
+                if sub_event_count > 0:
+                    sub_events = sub_events[0:sub_event_count]
+
+                for bucket in sub_events:
                     print("    {0:76} {1}".format(bucket.key, bucket.doc_count))
 
     def dump_summary(self, print_event_meta_data = False):
