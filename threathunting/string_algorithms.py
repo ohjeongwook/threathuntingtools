@@ -14,6 +14,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 from scipy.sparse import csr_matrix, save_npz, load_npz
 import sparse_dot_topn.sparse_dot_topn as ct
+import sparse_dot_topn.sparse_dot_topn_threaded as ct_thread
 import yaml
 
 class StringMatcher:
@@ -95,7 +96,7 @@ class StringMatcher:
         indices = np.zeros(nnz_max, dtype = idx_dtype)
         data = np.zeros(nnz_max, dtype = A.dtype)
 
-        ct.sparse_dot_topn_threaded(
+        ct_thread.sparse_dot_topn_threaded(
             M, N, np.asarray(A.indptr, dtype = idx_dtype), 
             np.asarray(A.indices, dtype = idx_dtype), 
             A.data, 
