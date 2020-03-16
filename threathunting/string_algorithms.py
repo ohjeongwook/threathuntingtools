@@ -79,7 +79,7 @@ class StringMatcher:
         vectorizer = TfidfVectorizer(min_df = 1, analyzer = self.ngrams)
         return vectorizer.fit_transform(self.TargetData)
         
-    def perform_consine_similarity_analysis(self, A, B, ntop, lower_bound = 0):
+    def perform_consine_similarity_analysis(self, A, B, ntop, lower_bound = 0, njobs = 10):
         # force A and B as a CSR matrix.
         # If they have already been CSR, there is no overhead
         A = A.tocsr()
@@ -95,7 +95,7 @@ class StringMatcher:
         indices = np.zeros(nnz_max, dtype = idx_dtype)
         data = np.zeros(nnz_max, dtype = A.dtype)
 
-        ct.sparse_dot_topn(
+        ct.sparse_dot_topn_threaded(
             M, N, np.asarray(A.indptr, dtype = idx_dtype), 
             np.asarray(A.indices, dtype = idx_dtype), 
             A.data, 
@@ -104,13 +104,13 @@ class StringMatcher:
             B.data, 
             ntop, 
             lower_bound, 
-            indptr, indices, data)
+            indptr, indices, data, njobs)
 
         return csr_matrix((data, indices, indptr), shape = (M, N))
     
-    def analyze(self, threshold = 0.8):       
+    def analyze(self, threshold = 0.8, njobs = 10):       
         tf_idf_matrix = self.get_tfidf_matrix()
-        self.SimilarityMatrix = self.perform_consine_similarity_analysis(tf_idf_matrix, tf_idf_matrix.transpose(), 10, threshold)
+        self.SimilarityMatrix = self.perform_consine_similarity_analysis(tf_idf_matrix, tf_idf_matrix.transpose(), 10, threshold, njobs)
 
     def _get_matches(self, top = None):
         non_zeros = self.SimilarityMatrix.nonzero()
