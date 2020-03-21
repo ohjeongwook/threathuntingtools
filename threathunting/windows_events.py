@@ -12,8 +12,8 @@ from elasticsearch_dsl import Search, Q
 from threathunting.const import *
 
 class Events:
-    def __init__(self, telemetry_server = 'localhost'):
-        self.Client = Elasticsearch(telemetry_server)
+    def __init__(self, telemetry_server = 'localhost', http_auth = None):
+        self.Client = Elasticsearch(telemetry_server, http_auth = http_auth)
 
     def dump_event_counts(self):
         s = Search(using = self.Client, index = WINLOGBEAT_INDEX)
@@ -34,10 +34,10 @@ class Events:
             print(fmt_str.format(e.key, e.doc_count))        
 
 class Provider:    
-    def __init__(self, telemetry_server = 'localhost', provider_name = '', hostname = None, start_datetime = None, end_datetime = None, scan = False, debug_query = False, timeout = 60):
+    def __init__(self, telemetry_server = 'localhost', http_auth = None, provider_name = '', hostname = None, start_datetime = None, end_datetime = None, scan = False, debug_query = False, timeout = 60):
         self.DebugQuery = debug_query
         self.Scan = scan
-        self.Client = Elasticsearch(telemetry_server, timeout = timeout)
+        self.Client = Elasticsearch(telemetry_server, http_auth = http_auth, timeout = timeout)
         self.Hostname = hostname
         self.ProviderName = provider_name
         
