@@ -1,5 +1,5 @@
 astroid==2.3.3
-colander==0.9.9
+colander==1.7.0
 colorama==0.4.3
 cycler==0.10.0
 Cython==0.29.14
