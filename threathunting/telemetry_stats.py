@@ -61,8 +61,9 @@ class ProviderInformation:
         return ''        
         
 class TelemetryStats:
-    def __init__(self, telemetry_server, provider_name, start_datetime, end_datetime, interval, use_plotly = False):
+    def __init__(self, telemetry_server, http_auth, provider_name, start_datetime, end_datetime, interval, use_plotly = False):
         self.ProviderName = provider_name
+        self.HTTPAuth = http_auth
         self.StartDateTime = start_datetime
         self.EndDateTime = end_datetime
         self.Interval = interval
@@ -79,7 +80,7 @@ class TelemetryStats:
         start_datetime = self.StartDateTime
         while start_datetime < self.EndDateTime:
             end_datetime = start_datetime + self.Interval
-            provider = Provider(self.TelemetryServer, self.ProviderName, start_datetime = start_datetime, end_datetime = end_datetime)
+            provider = Provider(self.TelemetryServer, self.HTTPAuth, self.ProviderName, start_datetime = start_datetime, end_datetime = end_datetime)
             total_event_counts = provider.get_event_counts()
             event_counts = provider.get_event_counts(event_id = event_id)
 
@@ -100,7 +101,7 @@ class TelemetryStats:
         start_datetime = self.StartDateTime
         while start_datetime < self.EndDateTime:
             end_datetime = start_datetime + self.Interval
-            provider = Provider(self.TelemetryServer, self.ProviderName, start_datetime = start_datetime, end_datetime = end_datetime)
+            provider = Provider(self.TelemetryServer, self.HTTPAuth, self.ProviderName, start_datetime = start_datetime, end_datetime = end_datetime)
             event_id_counts = {}
             for count in provider.get_event_id_counts():
                 event_id = int(count['key'])
@@ -166,7 +167,7 @@ class TelemetryStats:
         self.draw_stacked_graph(df)
 
     def group_events(self, event_id, data_name = 'Image', aggregate_by_hostname = False, top_n = 0):
-        provider = Provider(self.TelemetryServer, self.ProviderName, start_datetime = self.StartDateTime, end_datetime = self.EndDateTime)
+        provider = Provider(self.TelemetryServer, self.HTTPAuth, self.ProviderName, start_datetime = self.StartDateTime, end_datetime = self.EndDateTime)
         result = provider.aggregate_by_event_data(event_id = event_id, event_data_name =data_name, aggregate_by_hostname = aggregate_by_hostname)
 
         if aggregate_by_hostname:

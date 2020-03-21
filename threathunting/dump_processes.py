@@ -18,13 +18,14 @@ import threathunting.process
 import threathunting.powershell
        
 class ProcessQuery:
-    def __init__(self, telemetry_server, hostname, start_datetime, end_datetime):
+    def __init__(self, telemetry_server, http_auth, hostname, start_datetime, end_datetime):
         self.SqliteConn = None
+        self.TelemetryServer = telemetry_server
+        self.HTTPAuth = http_auth
         self.TableName = "process_create"
         self.StartDateTime = start_datetime
         self.EndDateTime = end_datetime
-        self.TelemetryServer = telemetry_server
-        self.Process = process.Processes(telemetry_server = telemetry_server, start_datetime = self.StartDateTime, end_datetime = self.EndDateTime, scan = True)
+        self.Process = process.Processes(telemetry_server = telemetry_server, http_auth = http_auth, start_datetime = self.StartDateTime, end_datetime = self.EndDateTime, scan = True)
 
     def open_sqlite_database(self, filename):
         try:
@@ -85,7 +86,7 @@ class ProcessQuery:
         end_datetime = event_datetime + timedelta(seconds = 60)
         
         if options['enumerate_events']:
-            provider = Provider(telemetry_server = self.TelemetryServer, hostname = winlog.computer_name, start_datetime = start_datetime, end_datetime = end_datetime, scan = True )
+            provider = Provider(telemetry_server = self.TelemetryServer, http_auth = self.HTTPAuth, hostname = winlog.computer_name, start_datetime = start_datetime, end_datetime = end_datetime, scan = True )
             hits = provider.query_events(process_id = winlog.event_data.ProcessId)
             
             if options['full_dump']:
